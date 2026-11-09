@@ -1,12 +1,35 @@
 /* INKRMN site styles */
 
+/* Midnight Magic palette */
+:root {
+  --midnight: #0a0f2e;   /* base */
+  --purple: #1e0f41;     /* second base; the GEO_SC scene's background */
+  --red: #b3202e;        /* main colour, for fills only (too dark for text) */
+  --red-deep: #7a1226;
+  --green: #5dfc9b;      /* phosphor green: screen text, links, highlights */
+  --paper: #ebe7d8;      /* body text */
+
+  --font-main: Arial, Helvetica, sans-serif;
+  --font-screen: "Courier New", Courier, monospace; /* stand-in for a terminal font */
+}
+
 *, *::before, *::after { box-sizing: border-box; }
+
+html {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
 
 html, body {
   margin: 0;
-  background: #1e0f41; /* the GEO_SC scene's background colour */
-  color: #fff;
+  background: var(--purple);
+  color: var(--paper);
+  font-family: var(--font-main);
+  line-height: 1.4;
 }
+
+a { color: var(--green); }
+a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 
 .visually-hidden {
   position: absolute;
@@ -20,13 +43,16 @@ html, body {
   border: 0;
 }
 
-/* GEO_SC hero (from geo-sc/README.md) */
+/* GEO_SC logo (from geo-sc/README.md), fixed behind every screen */
 .geo-hero {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   overflow: hidden;
   height: 100vh;         /* fallback for browsers without svh */
   height: 100svh;
-  background: #1e0f41;   /* scene.json: settings.bg_digital_c1 */
+  background: var(--purple);   /* scene.json: settings.bg_digital_c1 */
 }
 .geo-hero img {          /* the still, full width and centred, to match the canvas */
   position: absolute;
@@ -48,6 +74,250 @@ html, body {
 }
 .geo-hero canvas.is-ready { opacity: 1; }
 
+/* Channel number, like a TV's on-screen display */
+.osd {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
+  margin: 0;
+  font: 700 1rem/1 var(--font-screen);
+  letter-spacing: 0.12em;
+  color: var(--green);
+  text-shadow: 0 0 8px rgb(93 252 155 / 0.5);
+  pointer-events: none;
+}
+
+/* Screens: one per full view */
+main { position: relative; z-index: 1; }
+
+.screen {
+  min-height: 100vh;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.25rem 3rem;
+  scroll-snap-align: start;
+  /* the logo glows faintly through, under faint scanlines */
+  background:
+    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    rgb(10 15 46 / 0.86);
+}
+.screen__inner { width: 100%; max-width: 62rem; }
+
+.screen__title {
+  margin: 0 0 2rem;
+  font: 700 0.95rem/1 var(--font-screen);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.screen__title::before { content: "> "; }
+
+/* Screen 1: boot. Clear, so the logo shows; taps pass through to it. */
+.screen--boot {
+  background: none;
+  align-items: flex-end;
+  pointer-events: none;
+  text-align: center;
+}
+.screen--boot a { pointer-events: auto; }
+.boot__tagline {
+  max-width: 24rem;
+  margin: 0 auto 1.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 10px var(--purple);
+}
+.boot__start { margin: 0 0 1rem; }
+.boot__start a {
+  display: inline-block;
+  padding: 0.75rem 1rem;
+  font: 700 1.05rem/1 var(--font-screen);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  text-decoration: none;
+  text-shadow: 0 0 10px rgb(93 252 155 / 0.6);
+  animation: blink 1.2s steps(1) infinite;
+}
+@keyframes blink { 50% { opacity: 0.15; } }
+
+/* Screen 2: save disks */
+.slots {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2rem 1.25rem;
+}
+@media (min-width: 50rem) {
+  .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; }
+}
+
+/* A 3.5-inch floppy: clipped corner, metal shutter, cover art as the label */
+.disk {
+  --body: var(--midnight);
+  position: relative;
+  aspect-ratio: 1 / 1.04;
+  max-width: 13rem;
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.14), transparent 45%), var(--body);
+  border-radius: 4px;
+  clip-path: polygon(0 0, 91% 0, 100% 9%, 100% 100%, 0 100%);
+}
+.disk--blue   { --body: #1b2a78; }
+.disk--red    { --body: var(--red-deep); }
+.disk--purple { --body: #4a2596; }
+.disk--blank  { --body: #14151c; }
+
+.disk::before {          /* the shutter */
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 22%;
+  width: 50%;
+  height: 31%;
+  border-radius: 0 0 2px 2px;
+  background: linear-gradient(90deg, #8d9099, #d5d7dc 30%, #a4a7af 70%, #7c7f88);
+}
+.disk::after {           /* the shutter's window */
+  content: "";
+  position: absolute;
+  top: 4%;
+  left: 56%;
+  width: 10%;
+  height: 22%;
+  background: var(--body);
+}
+.disk img,
+.disk__unknown {         /* the label */
+  position: absolute;
+  left: 10%;
+  bottom: 0;
+  width: 80%;
+  height: 60%;
+  border-radius: 3px 3px 0 0;
+}
+.disk img { display: block; object-fit: cover; }
+.disk__unknown {
+  display: grid;
+  place-items: center;
+  background: #23242e;
+  color: var(--green);
+  font: 700 2.5rem/1 var(--font-screen);
+}
+
+.slot__name {
+  margin: 0.9rem 0 0.2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.slot__meta {
+  margin: 0;
+  font: 0.75rem/1.4 var(--font-screen);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.slot__links {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  font: 700 0.8rem/1 var(--font-screen);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.slot__links a { display: inline-block; padding: 0.45rem 0; } /* roomy enough to tap */
+.slot__links a::before { content: "> "; }
+
+.slot--empty .slot__name {
+  font: 700 1rem/1.3 var(--font-screen);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1em;
+  vertical-align: -0.15em;
+  background: var(--green);
+  animation: blink 1s steps(1) infinite;
+}
+
+/* Screen 3: press */
+.press { display: grid; gap: 2.5rem; max-width: 40rem; }
+.press__award { margin: 0; }
+.press__award strong {
+  display: inline-block;
+  padding: 0.3rem 0.6rem;
+  background: var(--red);
+  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.press__award span,
+.quote figcaption {
+  display: block;
+  margin-top: 0.6rem;
+  font: 0.8rem/1.4 var(--font-screen);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.quote { margin: 0; }
+.quote blockquote { margin: 0; }
+.quote blockquote p {
+  margin: 0;
+  font-size: clamp(1.5rem, 6vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+.quote blockquote p::before { content: "\201C"; color: var(--green); }
+.quote blockquote p::after  { content: "\201D"; color: var(--green); }
+.quote figcaption::before { content: "- "; }
+
+/* Screen 4: contact */
+.contact { margin: 0; display: grid; gap: 1.5rem; }
+.contact dt {
+  font: 0.75rem/1.4 var(--font-screen);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.contact dd {
+  margin: 0;
+  font-size: clamp(1.25rem, 5vw, 1.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.contact a { display: inline-block; padding: 0.2rem 0; }
+.credits {
+  margin: 3rem 0 0;
+  font: 0.7rem/1.4 var(--font-screen);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* Tuning in: a short channel-change flicker the first time a screen appears.
+   Only with the script running, so content is never hidden without it. */
+.js .screen:not(.screen--boot) .screen__inner { opacity: 0; }
+.js .screen:not(.screen--boot).is-on .screen__inner { animation: tune-in 0.4s steps(5) both; }
+@keyframes tune-in {
+  0%   { opacity: 0; transform: translateX(-10px) skewX(5deg); filter: brightness(2.5) saturate(0); }
+  40%  { opacity: 1; transform: translateX(6px) skewX(-2deg); filter: brightness(1.5) saturate(0.4); }
+  70%  { transform: translateX(-2px); filter: none; }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
   .geo-hero canvas { transition: none; }
+  .boot__start a, .cursor { animation: none; }
+  .js .screen:not(.screen--boot) .screen__inner { opacity: 1; }
+  .js .screen:not(.screen--boot).is-on .screen__inner { animation: none; }
 }
