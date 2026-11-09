@@ -1,0 +1,53 @@
+/* INKRMN site styles */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: #1e0f41; /* the GEO_SC scene's background colour */
+  color: #fff;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* GEO_SC hero (from geo-sc/README.md) */
+.geo-hero {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;         /* fallback for browsers without svh */
+  height: 100svh;
+  background: #1e0f41;   /* scene.json: settings.bg_digital_c1 */
+}
+.geo-hero img {          /* the still, full width and centred, to match the canvas */
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: auto;
+  transform: translateY(-50%);
+  display: block;
+}
+.geo-hero canvas {       /* size with CSS only; the player sets width/height attributes */
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
+.geo-hero canvas.is-ready { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .geo-hero canvas { transition: none; }
+}

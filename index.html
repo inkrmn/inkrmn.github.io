@@ -2,9 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>INKRMN </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INKRMN</title>
+  <meta name="theme-color" content="#1e0f41">
+  <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
-<p>Hello world!</p>
+<main>
+  <h1 class="visually-hidden">INKRMN</h1>
+
+  <section class="geo-hero">
+    <picture>
+      <source media="(orientation: portrait)" srcset="/geo-sc/scenes/ink-mn-homepage/still-tall.jpg" width="1080" height="1920">
+      <img src="/geo-sc/scenes/ink-mn-homepage/still-wide.jpg" alt="INKRMN" width="1920" height="1080">
+    </picture>
+    <canvas aria-hidden="true"></canvas>
+  </section>
+</main>
+
+<script type="module">
+  import { mount } from '/geo-sc/player.js';
+  mount(document.querySelector('.geo-hero canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
+    .catch((err) => console.warn(err)); // the still stays if anything goes wrong
+</script>
 </body>
 </html>
