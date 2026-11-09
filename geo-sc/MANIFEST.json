@@ -1,0 +1,31 @@
+{
+  "note": "Written by GEO_SC (npm run web). Re-run that to update this folder; edits here are overwritten.",
+  "created": "2026-11-09T22:13:15.896Z",
+  "geoScCommit": "e6b4062",
+  "engine": "14f6d83831b46d29823a91a16ac52f5c1e8274a3e36e16fb34190611e4d33349",
+  "scenes": [
+    {
+      "name": "ink-mn-homepage",
+      "preset": "ink.mn homepage",
+      "exported": "2026-11-09T22:11:41.644Z"
+    }
+  ],
+  "files": [
+    "MANIFEST.json",
+    "README.md",
+    "VERSION",
+    "backgrounds.js",
+    "demo.html",
+    "effects.js",
+    "look.js",
+    "math.js",
+    "player.js",
+    "renderer.js",
+    "scenes/ink-mn-homepage/depth.png",
+    "scenes/ink-mn-homepage/logo.png",
+    "scenes/ink-mn-homepage/scene.json",
+    "scenes/ink-mn-homepage/still-tall.jpg",
+    "scenes/ink-mn-homepage/still-wide.jpg",
+    "shaders.js"
+  ]
+}
