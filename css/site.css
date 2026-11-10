@@ -128,12 +128,15 @@ main { position: relative; z-index: 1; }
   text-align: center;
 }
 .screen--boot a { pointer-events: auto; }
-.boot__tagline {
-  max-width: 24rem;
-  margin: 0 auto 1.75rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+/* The logo plays alone for a few seconds, then the button and scroll cue appear. */
+/* Without the script, timed from page load. With it, timed from when the logo
+   first shows (js/site.js adds .is-ready to the boot screen). */
+.boot__after { animation: boot-after 0.8s ease 3s both; }
+.js .boot__after { animation: none; opacity: 0; visibility: hidden; }
+.js .screen--boot.is-ready .boot__after { animation: boot-after 0.8s ease 3s both; }
+@keyframes boot-after {
+  from { opacity: 0; visibility: hidden; }
+  to   { opacity: 1; visibility: visible; }
 }
 .boot__signup { margin: 0 0 0.75rem; }
 .button {
@@ -371,7 +374,8 @@ main { position: relative; z-index: 1; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .geo-hero, .geo-backdrop canvas, .geo-hero canvas, .disk img, .disk canvas { transition: none; }
-  .boot__start a, .cursor { animation: none; }
+  .boot__start a, .cursor, .boot__after { animation: none; }
+  .js .boot__after, .js .screen--boot.is-ready .boot__after { animation: none; opacity: 1; visibility: visible; }
   .js .screen:not(.screen--boot) .screen__inner { opacity: 1; }
   .js .screen:not(.screen--boot).is-on .screen__inner { animation: none; }
 }

@@ -10,9 +10,15 @@ document.documentElement.classList.add('js');
 const hero = document.querySelector('.geo-hero');
 const players = { logo: null, backdrop: null };
 
+// The button and scroll cue appear three seconds after the logo first shows
+// (the CSS does the waiting). If the logo can't run, the still counts instead.
+const boot = document.getElementById('boot');
+const bootReady = () => boot.classList.add('is-ready');
+setTimeout(bootReady, 6000); // never leave the button hidden for long
+
 mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
-  .then((player) => { players.logo = player; })
-  .catch((err) => console.warn(err));
+  .then((player) => { players.logo = player; bootReady(); })
+  .catch((err) => { console.warn(err); bootReady(); });
 
 mount(document.querySelector('.geo-backdrop canvas'), { scene: '/scenes/background/', interactive: false })
   .then((player) => { players.backdrop = player; if (player && !hero.classList.contains('is-away')) player.pause(); })
@@ -79,7 +85,7 @@ if (signupButton && form) {
         body: new URLSearchParams(new FormData(form)),
       });
       form.classList.add('is-done');
-      status.textContent = 'Nearly there. Check your inbox to confirm.';
+      status.textContent = 'Saved.';
     } catch (err) {
       console.warn(err);
       submit.disabled = false;
