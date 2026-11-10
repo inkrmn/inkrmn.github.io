@@ -13,7 +13,22 @@ const players = { logo: null, backdrop: null };
 // The button and scroll cue appear three seconds after the logo first shows
 // (the CSS does the waiting). If the logo can't run, the still counts instead.
 const boot = document.getElementById('boot');
-const bootReady = () => boot.classList.add('is-ready');
+const bootReady = () => {
+  if (boot.classList.contains('is-ready')) return;
+  boot.classList.add('is-ready');
+  setTimeout(mountJoinButton, 2600); // just before the button fades in
+};
+
+// The Join mailing list button in particles. If it can't run, the plain
+// button stays.
+function mountJoinButton() {
+  const button = document.querySelector('.button--geo');
+  const canvas = button && button.querySelector('canvas');
+  if (!canvas) return;
+  mount(canvas, { scene: canvas.dataset.scene, mobileScale: 1, minDensity: 420 })
+    .then((player) => { if (player) button.classList.add('is-geo'); })
+    .catch((err) => console.warn(err));
+}
 setTimeout(bootReady, 6000); // never leave the button hidden for long
 
 mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })

@@ -151,6 +151,38 @@ main { position: relative; z-index: 1; }
   pointer-events: auto;
 }
 .button:hover, .button:focus-visible { background: var(--green); color: var(--edge); text-shadow: none; }
+
+/* The Join mailing list button, drawn in particles by GEO_SC. The real button
+   and its text stay underneath for tapping, keyboards and screen readers; the
+   plain button above shows if the render can't run. The canvas is larger than
+   the button because the render leaves a margin round the image. */
+.button--geo {
+  position: relative;
+  width: min(20rem, 82vw);
+  aspect-ratio: 6.4;
+  padding: 0;
+}
+.button--geo canvas {
+  position: absolute;
+  left: -11%;
+  top: -40%;
+  width: 122%;
+  height: 180%;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  mix-blend-mode: screen;   /* the scene's dark background drops away */
+  -webkit-mask-image: radial-gradient(closest-side, #000 75%, transparent);
+  mask-image: radial-gradient(closest-side, #000 75%, transparent);
+}
+.button--geo.is-geo { border-color: transparent; background: none; }
+.button--geo.is-geo .button__label { opacity: 0; }
+.button--geo.is-geo canvas { opacity: 1; }
+.button--geo.is-geo:hover,
+.button--geo.is-geo:focus-visible { background: none; }
+.button--geo.is-geo:hover canvas,
+.button--geo.is-geo:focus-visible canvas { filter: brightness(1.5); }
 .button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
 /* Mailing list form. Hidden behind the Sign up button once the script runs. */
 .signup {
@@ -392,12 +424,11 @@ main { position: relative; z-index: 1; }
 .screen__title,
 .slot--empty .slot__name,
 .signup__status,
-.boot__start a,
-.button:not(:hover):not(:focus-visible) {
+.boot__start a {
   /* the green text glows in its own colour, like phosphor */
   text-shadow: var(--fringe), 0 0 8px rgb(93 252 155 / 0.45), var(--legible);
 }
-.button:hover, .button:focus-visible { text-shadow: var(--fringe); }
+.button { text-shadow: none; }   /* kept crisp: the fringe muddied it */
 
 .osd,
 .screen__title,
