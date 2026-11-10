@@ -10,7 +10,10 @@
 </head>
 <body>
 
-<!-- The GEO_SC logo: fixed behind every screen -->
+<!-- The GEO_SC scene with no logo: the backdrop for every screen after the first -->
+<div class="geo-backdrop"><canvas aria-hidden="true"></canvas></div>
+
+<!-- The GEO_SC logo: fixed behind the first screen, fades out after it -->
 <div class="geo-hero">
   <picture>
     <source media="(orientation: portrait)" srcset="/geo-sc/scenes/ink-mn-homepage/still-tall.jpg" width="1080" height="1920">

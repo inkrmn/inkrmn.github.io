@@ -44,7 +44,10 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   border: 0;
 }
 
-/* GEO_SC logo (from geo-sc/README.md), fixed behind every screen */
+/* GEO_SC (from geo-sc/README.md): two fixed layers behind the page.
+   .geo-backdrop is the scene with no logo; .geo-hero is the logo, on top,
+   and fades away once the first screen is left. */
+.geo-backdrop,
 .geo-hero {
   position: fixed;
   top: 0;
@@ -64,6 +67,9 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   transform: translateY(-50%);
   display: block;
 }
+.geo-hero { transition: opacity 0.5s ease; }
+.geo-hero.is-away { opacity: 0; }
+.geo-backdrop canvas,
 .geo-hero canvas {       /* size with CSS only; the player sets width/height attributes */
   position: absolute;
   inset: 0;
@@ -73,6 +79,7 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   opacity: 0;
   transition: opacity 0.6s ease;
 }
+.geo-backdrop canvas.is-ready,
 .geo-hero canvas.is-ready { opacity: 1; }
 
 /* Channel number, like a TV's on-screen display */
@@ -304,7 +311,7 @@ main { position: relative; z-index: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .geo-hero canvas { transition: none; }
+  .geo-hero, .geo-backdrop canvas, .geo-hero canvas { transition: none; }
   .boot__start a, .cursor { animation: none; }
   .js .screen:not(.screen--boot) .screen__inner { opacity: 1; }
   .js .screen:not(.screen--boot).is-on .screen__inner { animation: none; }
