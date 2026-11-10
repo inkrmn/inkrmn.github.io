@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>INKRMN</title>
   <meta name="description" content="INKRMN. Unpredictable, texture-heavy pop for fans of genre-blurring sound design.">
-  <meta name="theme-color" content="#1e0f41">
+  <meta name="theme-color" content="#010103">
   <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
@@ -27,14 +27,18 @@
     <div class="screen__inner">
       <h1 class="visually-hidden">INKRMN</h1>
       <p class="boot__tagline">Unpredictable, texture-heavy pop for fans of genre-blurring sound design.</p>
-      <p class="boot__start"><a href="#releases">Press start</a></p>
+      <p class="boot__signup">
+        <button type="button" class="button" aria-expanded="false" aria-controls="signup-note">Sign up</button>
+      </p>
+      <p class="boot__note" id="signup-note" hidden>Mailing list opens soon.</p>
+      <p class="boot__start"><a href="#releases">Press start <span aria-hidden="true">&#9660;</span></a></p>
     </div>
   </section>
 
   <!-- Screen 2: releases as save disks -->
   <section class="screen" id="releases" data-ch="02" aria-labelledby="releases-title">
     <div class="screen__inner">
-      <h2 class="screen__title" id="releases-title">Load game</h2>
+      <h2 class="screen__title" id="releases-title">Releases</h2>
       <ul class="slots">
         <li class="slot">
           <div class="disk disk--blue"><img src="/img/covers/mad-2609.jpg" alt="MAD (2609) cover art" width="480" height="480" loading="lazy"></div>

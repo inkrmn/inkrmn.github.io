@@ -2,8 +2,9 @@
 
 /* Midnight Magic palette */
 :root {
-  --midnight: #0a0f2e;   /* base */
-  --purple: #1e0f41;     /* second base; the GEO_SC scene's background */
+  --edge: #010103;       /* the GEO_SC render's edge colour: page and browser bars */
+  --midnight: #0a0f2e;
+  --purple: #1e0f41;
   --red: #b3202e;        /* main colour, for fills only (too dark for text) */
   --red-deep: #7a1226;
   --green: #5dfc9b;      /* phosphor green: screen text, links, highlights */
@@ -22,7 +23,7 @@ html {
 
 html, body {
   margin: 0;
-  background: var(--purple);
+  background: var(--edge);
   color: var(--paper);
   font-family: var(--font-main);
   line-height: 1.4;
@@ -52,7 +53,7 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   overflow: hidden;
   height: 100vh;         /* fallback for browsers without svh */
   height: 100svh;
-  background: var(--purple);   /* scene.json: settings.bg_digital_c1 */
+  background: var(--edge);
 }
 .geo-hero img {          /* the still, full width and centred, to match the canvas */
   position: absolute;
@@ -99,10 +100,8 @@ main { position: relative; z-index: 1; }
   justify-content: center;
   padding: 4rem 1.25rem 3rem;
   scroll-snap-align: start;
-  /* the logo glows faintly through, under faint scanlines */
-  background:
-    repeating-linear-gradient(to bottom, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
-    rgb(10 15 46 / 0.86);
+  /* no background: the GEO_SC scene shows through every screen untouched */
+  text-shadow: 0 1px 6px #000, 0 0 2px #000;
 }
 .screen__inner { width: 100%; max-width: 62rem; }
 
@@ -117,7 +116,6 @@ main { position: relative; z-index: 1; }
 
 /* Screen 1: boot. Clear, so the logo shows; taps pass through to it. */
 .screen--boot {
-  background: none;
   align-items: flex-end;
   pointer-events: none;
   text-align: center;
@@ -129,17 +127,36 @@ main { position: relative; z-index: 1; }
   font-size: 0.95rem;
   font-weight: 700;
   letter-spacing: -0.01em;
-  text-shadow: 0 1px 10px var(--purple);
+}
+.boot__signup { margin: 0 0 0.75rem; }
+.button {
+  padding: 0.8rem 1.6rem;
+  border: 2px solid var(--green);
+  border-radius: 0;
+  background: rgb(1 1 3 / 0.6);
+  color: var(--green);
+  font: 700 1rem/1 var(--font-screen);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.button:hover, .button:focus-visible { background: var(--green); color: var(--edge); text-shadow: none; }
+.button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
+.boot__note {
+  margin: 0 0 0.75rem;
+  font: 0.8rem/1.4 var(--font-screen);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 .boot__start { margin: 0 0 1rem; }
 .boot__start a {
   display: inline-block;
   padding: 0.75rem 1rem;
-  font: 700 1.05rem/1 var(--font-screen);
+  font: 700 0.85rem/1 var(--font-screen);
   letter-spacing: 0.3em;
   text-transform: uppercase;
   text-decoration: none;
-  text-shadow: 0 0 10px rgb(93 252 155 / 0.6);
   animation: blink 1.2s steps(1) infinite;
 }
 @keyframes blink { 50% { opacity: 0.15; } }

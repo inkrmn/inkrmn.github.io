@@ -25,3 +25,13 @@ if ('IntersectionObserver' in window) {
 } else {
   screens.forEach((screen) => screen.classList.add('is-on'));
 }
+
+// 3. Sign up: a stand-in until the mailing list is connected.
+const signup = document.querySelector('.boot__signup .button');
+const note = document.getElementById('signup-note');
+if (signup && note) {
+  signup.addEventListener('click', () => {
+    note.hidden = false;
+    signup.setAttribute('aria-expanded', 'true');
+  });
+}
