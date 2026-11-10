@@ -108,7 +108,6 @@ main { position: relative; z-index: 1; }
   padding: 4rem 1.25rem 3rem;
   scroll-snap-align: start;
   /* no background: the GEO_SC scene shows through every screen untouched */
-  text-shadow: 0 1px 6px #000, 0 0 2px #000;
 }
 .screen__inner { width: 100%; max-width: 62rem; }
 
@@ -369,6 +368,55 @@ main { position: relative; z-index: 1; }
   40%  { opacity: 1; transform: translateX(6px) skewX(-2deg); filter: brightness(1.5) saturate(0.4); }
   70%  { transform: translateX(-2px); filter: none; }
   100% { opacity: 1; transform: none; filter: none; }
+}
+
+/* Screen text: makes the page's text look as if it's on the same screen as
+   the GEO_SC scene. Matches the homepage preset: a slight horizontal
+   red/blue fringe (RGB shift, angle 0), a soft phosphor glow, and scanlines
+   on a 3px pitch (CRT size 3). It's all CSS, so the text stays real text.
+   Scanlines are a mask, which would also clip focus outlines, so they only
+   go on text you can't tab to. Links, buttons and fields get the fringe and
+   glow only. */
+:root {
+  --fringe:
+    -0.6px 0 rgb(255 40 70 / 0.55),
+    0.6px 0 rgb(40 140 255 / 0.55);
+  --glow: 0 0 6px rgb(255 255 255 / 0.18);
+  --legible: 0 1px 6px #000, 0 0 2px #000;   /* keeps text clear over the scene */
+  --scanlines: repeating-linear-gradient(to bottom, #000 0 2px, rgb(0 0 0 / 0.6) 2px 3px);
+  --scanlines-soft: repeating-linear-gradient(to bottom, #000 0 2px, rgb(0 0 0 / 0.78) 2px 3px);
+}
+
+.screen { text-shadow: var(--fringe), var(--glow), var(--legible); }
+.osd,
+.screen__title,
+.slot--empty .slot__name,
+.signup__status,
+.boot__start a,
+.button:not(:hover):not(:focus-visible) {
+  /* the green text glows in its own colour, like phosphor */
+  text-shadow: var(--fringe), 0 0 8px rgb(93 252 155 / 0.45), var(--legible);
+}
+.button:hover, .button:focus-visible { text-shadow: var(--fringe); }
+
+.osd,
+.screen__title,
+.slot__name,
+.press__award strong,
+.quote blockquote,
+.contact dt {
+  -webkit-mask-image: var(--scanlines);
+  mask-image: var(--scanlines);
+}
+.slot__meta,
+.press__award span,
+.quote figcaption,
+.credits,
+.signup__label,
+.signup__small,
+.signup__status {
+  -webkit-mask-image: var(--scanlines-soft);   /* lighter on small text */
+  mask-image: var(--scanlines-soft);
 }
 
 @media (prefers-reduced-motion: reduce) {
