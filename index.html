@@ -31,9 +31,21 @@
       <h1 class="visually-hidden">INKRMN</h1>
       <p class="boot__tagline">Unpredictable, texture-heavy pop for fans of genre-blurring sound design.</p>
       <p class="boot__signup">
-        <button type="button" class="button" aria-expanded="false" aria-controls="signup-note">Sign up</button>
+        <button type="button" class="button" aria-expanded="false" aria-controls="signup">Sign up</button>
       </p>
-      <p class="boot__note" id="signup-note" hidden>Mailing list opens soon.</p>
+      <!-- Mailing list (MailerLite form 203775095803479416). Without the script it
+           still works: it posts straight to MailerLite in a new tab. -->
+      <form class="signup" id="signup" action="https://assets.mailerlite.com/jsonp/2785189/forms/203775095803479416/subscribe" method="post" target="_blank">
+        <label class="signup__label" for="signup-email">Get new music and dates first</label>
+        <div class="signup__row">
+          <input class="signup__email" id="signup-email" type="email" name="fields[email]" placeholder="Email" autocomplete="email" required>
+          <button class="button signup__submit" type="submit">Join</button>
+        </div>
+        <input type="hidden" name="ml-submit" value="1">
+        <input type="hidden" name="anticsrf" value="true">
+        <p class="signup__small">You can unsubscribe at any time.</p>
+        <p class="signup__status" role="status" aria-live="polite"></p>
+      </form>
       <p class="boot__start"><a href="#releases">Press start <span aria-hidden="true">&#9660;</span></a></p>
     </div>
   </section>

@@ -50,13 +50,41 @@ if ('IntersectionObserver' in window) {
   screens.forEach((screen) => screen.classList.add('is-on'));
 }
 
-// 3. Sign up: a stand-in until the mailing list is connected.
-const signup = document.querySelector('.boot__signup .button');
-const note = document.getElementById('signup-note');
-if (signup && note) {
-  signup.addEventListener('click', () => {
-    note.hidden = false;
-    signup.setAttribute('aria-expanded', 'true');
+// 3. Sign up. The button opens the form; the form sends the address to
+//    MailerLite in the background, so nobody leaves the page. MailerLite then
+//    emails them a link to confirm.
+const signupButton = document.querySelector('.boot__signup .button');
+const form = document.getElementById('signup');
+
+if (signupButton && form) {
+  const status = form.querySelector('.signup__status');
+  const submit = form.querySelector('.signup__submit');
+
+  signupButton.addEventListener('click', () => {
+    const open = form.classList.toggle('is-open');
+    signupButton.setAttribute('aria-expanded', String(open));
+    if (open) form.querySelector('input[type=email]').focus();
+  });
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    submit.disabled = true;
+    status.textContent = 'Sending...';
+    try {
+      // MailerLite's reply can't be read from another site ('no-cors'),
+      // but the address still reaches them.
+      await fetch(form.action, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: new URLSearchParams(new FormData(form)),
+      });
+      form.classList.add('is-done');
+      status.textContent = 'Nearly there. Check your inbox to confirm.';
+    } catch (err) {
+      console.warn(err);
+      submit.disabled = false;
+      status.textContent = "That didn't send. Try again, or email hello@inkr.mn.";
+    }
   });
 }
 

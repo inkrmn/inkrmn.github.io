@@ -150,12 +150,49 @@ main { position: relative; z-index: 1; }
 }
 .button:hover, .button:focus-visible { background: var(--green); color: var(--edge); text-shadow: none; }
 .button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
-.boot__note {
-  margin: 0 0 0.75rem;
+/* Mailing list form. Hidden behind the Sign up button once the script runs. */
+.signup {
+  max-width: 22rem;
+  margin: 0 auto 1rem;
+  pointer-events: auto;
+}
+.js .signup:not(.is-open) { display: none; }
+.signup__label {
+  display: block;
+  margin-bottom: 0.6rem;
   font: 0.8rem/1.4 var(--font-screen);
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
+.signup__row { display: flex; gap: 0.5rem; }
+.signup__email {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  border: 2px solid var(--green);
+  border-radius: 0;
+  background: rgb(1 1 3 / 0.75);
+  color: var(--paper);
+  font: 1rem/1 var(--font-screen);   /* 16px or more stops iPhones zooming in */
+}
+.signup__email::placeholder { color: rgb(235 231 216 / 0.55); }
+.signup__email:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
+.signup__submit { padding: 0.75rem 1rem; letter-spacing: 0.15em; }
+.signup__submit:disabled { opacity: 0.5; cursor: wait; }
+.signup__small,
+.signup__status {
+  margin: 0.6rem 0 0;
+  font: 0.7rem/1.4 var(--font-screen);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.75;
+}
+.signup__status { color: var(--green); opacity: 1; }
+.signup__status:empty { display: none; }
+.signup.is-done .signup__row,
+.signup.is-done .signup__label,
+.signup.is-done .signup__small { display: none; }
+
 .boot__start { margin: 0 0 1rem; }
 .boot__start a {
   display: inline-block;
