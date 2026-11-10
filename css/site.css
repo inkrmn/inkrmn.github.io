@@ -4,7 +4,7 @@
 
 html, body {
   margin: 0;
-  background: #1e0f41; /* the GEO_SC scene's background colour */
+  background: #010103; /* the edge colour of the GEO_SC render */
   color: #fff;
 }
 
@@ -26,7 +26,7 @@ html, body {
   overflow: hidden;
   height: 100vh;         /* fallback for browsers without svh */
   height: 100svh;
-  background: #1e0f41;   /* scene.json: settings.bg_digital_c1 */
+  background: #010103;   /* the edge colour of the GEO_SC render */
 }
 .geo-hero img {          /* the still, full width and centred, to match the canvas */
   position: absolute;
