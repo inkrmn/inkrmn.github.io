@@ -181,23 +181,45 @@ main { position: relative; z-index: 1; }
   .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; }
 }
 
-/* Photos of real 3.5-inch floppies; the clipped corner hides the photo's backdrop */
+/* Floppy disks. The photo is the real content; where GEO_SC can run, a live
+   render of the same disk fades in over it (see js/site.js). */
 .disk {
-  display: block;
+  position: relative;
   width: 100%;
   max-width: 13rem;
-  height: auto;
   aspect-ratio: 560 / 612;
-  border-radius: 5px;
-  clip-path: polygon(1.5% 0, 95% 0, 100% 4.5%, 100% 100%, 0 100%, 0 1.5%);
-  filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.6));
 }
+.disk img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  /* the clipped corner hides the photo's backdrop */
+  clip-path: polygon(1.5% 0, 95% 0, 100% 4.5%, 100% 100%, 0 100%, 0 1.5%);
+  transition: opacity 0.6s ease;
+}
+.disk canvas {            /* a little larger than the photo: the render has a margin */
+  position: absolute;
+  inset: var(--disk-bleed, -5%);
+  width: calc(100% - 2 * var(--disk-bleed, -5%));
+  height: calc(100% - 2 * var(--disk-bleed, -5%));
+  display: block;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  /* fade the render's edges into the page background */
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+                      linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
+              linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
+  mask-composite: intersect;
+}
+.disk canvas.is-ready { opacity: 1; }
+.disk:has(canvas.is-ready) img { opacity: 0; }
 .disk--empty {            /* slot four: an empty bay */
   display: grid;
   place-items: center;
   border: 2px dashed rgb(93 252 155 / 0.55);
-  clip-path: none;
-  filter: none;
   background: rgb(1 1 3 / 0.5);
   color: var(--green);
   font: 700 2.5rem/1 var(--font-screen);
@@ -311,7 +333,7 @@ main { position: relative; z-index: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .geo-hero, .geo-backdrop canvas, .geo-hero canvas { transition: none; }
+  .geo-hero, .geo-backdrop canvas, .geo-hero canvas, .disk img, .disk canvas { transition: none; }
   .boot__start a, .cursor { animation: none; }
   .js .screen:not(.screen--boot) .screen__inner { opacity: 1; }
   .js .screen:not(.screen--boot).is-on .screen__inner { animation: none; }

@@ -59,3 +59,25 @@ if (signup && note) {
     signup.setAttribute('aria-expanded', 'true');
   });
 }
+
+// 4. The disks: a live GEO_SC render of each one, started the first time the
+//    releases screen comes near and paused whenever it is out of view.
+//    Without WebGL2, or with reduced motion, the photos simply stay.
+const releases = document.getElementById('releases');
+const diskCanvases = document.querySelectorAll('.disk canvas[data-scene]');
+let diskPlayers = null;
+
+if (releases && diskCanvases.length && 'IntersectionObserver' in window) {
+  new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting && !diskPlayers) {
+      diskPlayers = [];
+      diskCanvases.forEach((canvas) => {
+        mount(canvas, { scene: canvas.dataset.scene, mobileScale: 1 })
+          .then((player) => { if (player) diskPlayers.push(player); })
+          .catch((err) => console.warn(err));
+      });
+    } else if (diskPlayers) {
+      diskPlayers.forEach((player) => (entry.isIntersecting ? player.resume() : player.pause()));
+    }
+  }, { rootMargin: '25% 0px' }).observe(releases);
+}
