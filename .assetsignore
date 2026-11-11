@@ -1,0 +1,7 @@
+# Files Cloudflare should not publish (same format as .gitignore)
+.git/
+.github/
+.assetsignore
+wrangler.jsonc
+*.md
+CNAME
