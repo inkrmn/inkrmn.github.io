@@ -16,11 +16,6 @@
 
 *, *::before, *::after { box-sizing: border-box; }
 
-html {
-  scroll-snap-type: y proximity;
-  scroll-behavior: smooth;
-}
-
 html, body {
   margin: 0;
   background: var(--edge);
@@ -44,10 +39,7 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   border: 0;
 }
 
-/* GEO_SC (from geo-sc/README.md): two fixed layers behind the page.
-   .geo-backdrop is the scene with no logo; .geo-hero is the logo, on top,
-   and fades away once the first screen is left. */
-.geo-backdrop,
+/* GEO_SC (from geo-sc/README.md): the logo scene, fixed behind the page. */
 .geo-hero {
   position: fixed;
   top: 0;
@@ -67,9 +59,6 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   transform: translateY(-50%);
   display: block;
 }
-.geo-hero { transition: opacity 0.5s ease; }
-.geo-hero.is-away { opacity: 0; }
-.geo-backdrop canvas,
 .geo-hero canvas {       /* size with CSS only; the player sets width/height attributes */
   position: absolute;
   inset: 0;
@@ -79,24 +68,9 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   opacity: 0;
   transition: opacity 0.6s ease;
 }
-.geo-backdrop canvas.is-ready,
 .geo-hero canvas.is-ready { opacity: 1; }
 
-/* Channel number, like a TV's on-screen display */
-.osd {
-  position: fixed;
-  top: 1rem;
-  right: 1rem;
-  z-index: 2;
-  margin: 0;
-  font: 700 1rem/1 var(--font-screen);
-  letter-spacing: 0.12em;
-  color: var(--green);
-  text-shadow: 0 0 8px rgb(93 252 155 / 0.5);
-  pointer-events: none;
-}
-
-/* Screens: one per full view */
+/* The one screen */
 main { position: relative; z-index: 1; }
 
 .screen {
@@ -106,28 +80,18 @@ main { position: relative; z-index: 1; }
   align-items: center;
   justify-content: center;
   padding: 4rem 1.25rem 3rem;
-  scroll-snap-align: start;
-  /* no background: the GEO_SC scene shows through every screen untouched */
+  /* no background: the GEO_SC scene shows through untouched */
 }
 .screen__inner { width: 100%; max-width: 62rem; }
 
-.screen__title {
-  margin: 0 0 2rem;
-  font: 700 0.95rem/1 var(--font-screen);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  color: var(--green);
-}
-.screen__title::before { content: "> "; }
-
-/* Screen 1: boot. Clear, so the logo shows; taps pass through to it. */
+/* Boot screen. Clear, so the logo shows; taps pass through to it. */
 .screen--boot {
   align-items: flex-end;
   pointer-events: none;
   text-align: center;
 }
 .screen--boot a { pointer-events: auto; }
-/* The logo plays alone for a few seconds, then the button and scroll cue appear. */
+/* The logo plays alone for a few seconds, then the button appears. */
 /* Without the script, timed from page load. With it, timed from when the logo
    first shows (js/site.js adds .is-ready to the boot screen). */
 .boot__after { animation: boot-after 0.8s ease 3s both; }
@@ -227,181 +191,6 @@ main { position: relative; z-index: 1; }
 .signup.is-done .signup__label,
 .signup.is-done .signup__small { display: none; }
 
-.boot__start { margin: 0 0 1rem; }
-.boot__start a {
-  display: inline-block;
-  padding: 0.75rem 1rem;
-  font: 700 0.85rem/1 var(--font-screen);
-  letter-spacing: 0.3em;
-  text-transform: uppercase;
-  text-decoration: none;
-  animation: blink 1.2s steps(1) infinite;
-}
-@keyframes blink { 50% { opacity: 0.15; } }
-
-/* Screen 2: save disks */
-.slots {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2rem 1.25rem;
-}
-@media (min-width: 50rem) {
-  .slots { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2rem; }
-}
-
-/* Floppy disks. The photo is the real content; where GEO_SC can run, a live
-   render of the same disk fades in over it (see js/site.js). */
-.disk {
-  position: relative;
-  width: 100%;
-  max-width: 13rem;
-  aspect-ratio: 560 / 612;
-}
-.disk img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  border-radius: 5px;
-  /* the clipped corner hides the photo's backdrop */
-  clip-path: polygon(1.5% 0, 95% 0, 100% 4.5%, 100% 100%, 0 100%, 0 1.5%);
-  transition: opacity 0.6s ease;
-}
-.disk canvas {            /* a little larger than the photo: the render has a margin */
-  position: absolute;
-  inset: var(--disk-bleed, -5%);
-  width: calc(100% - 2 * var(--disk-bleed, -5%));
-  height: calc(100% - 2 * var(--disk-bleed, -5%));
-  display: block;
-  opacity: 0;
-  transition: opacity 0.6s ease;
-  /* fade the render's edges into the page background */
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
-                      linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
-  -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent),
-              linear-gradient(to bottom, transparent, #000 5%, #000 95%, transparent);
-  mask-composite: intersect;
-}
-.disk canvas.is-ready { opacity: 1; }
-.disk:has(canvas.is-ready) img { opacity: 0; }
-.disk--empty {            /* slot four: an empty bay */
-  display: grid;
-  place-items: center;
-  border: 2px dashed rgb(93 252 155 / 0.55);
-  background: rgb(1 1 3 / 0.5);
-  color: var(--green);
-  font: 700 2.5rem/1 var(--font-screen);
-  text-shadow: none;
-}
-
-.slot__name {
-  margin: 0.9rem 0 0.2rem;
-  font-size: 1.05rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.slot__meta {
-  margin: 0;
-  font: 0.75rem/1.4 var(--font-screen);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.75;
-}
-.slot__links {
-  list-style: none;
-  margin: 0.5rem 0 0;
-  padding: 0;
-  font: 700 0.8rem/1 var(--font-screen);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.slot__links a { display: inline-block; padding: 0.45rem 0; } /* roomy enough to tap */
-.slot__links a::before { content: "> "; }
-
-.slot--empty .slot__name {
-  font: 700 1rem/1.3 var(--font-screen);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--green);
-}
-.cursor {
-  display: inline-block;
-  width: 0.6em;
-  height: 1em;
-  vertical-align: -0.15em;
-  background: var(--green);
-  animation: blink 1s steps(1) infinite;
-}
-
-/* Screen 3: press */
-.press { display: grid; gap: 2.5rem; max-width: 40rem; }
-.press__award { margin: 0; }
-.press__award strong {
-  display: inline-block;
-  padding: 0.3rem 0.6rem;
-  background: var(--red);
-  font-size: clamp(1.5rem, 6vw, 2.5rem);
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-.press__award span,
-.quote figcaption {
-  display: block;
-  margin-top: 0.6rem;
-  font: 0.8rem/1.4 var(--font-screen);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-.quote { margin: 0; }
-.quote blockquote { margin: 0; }
-.quote blockquote p {
-  margin: 0;
-  font-size: clamp(1.5rem, 6vw, 2.5rem);
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.1;
-}
-.quote blockquote p::before { content: "\201C"; color: var(--green); }
-.quote blockquote p::after  { content: "\201D"; color: var(--green); }
-.quote figcaption::before { content: "- "; }
-
-/* Screen 4: contact */
-.contact { margin: 0; display: grid; gap: 1.5rem; }
-.contact dt {
-  font: 0.75rem/1.4 var(--font-screen);
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  opacity: 0.75;
-}
-.contact dd {
-  margin: 0;
-  font-size: clamp(1.25rem, 5vw, 1.75rem);
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-.contact a { display: inline-block; padding: 0.2rem 0; }
-.credits {
-  margin: 3rem 0 0;
-  font: 0.7rem/1.4 var(--font-screen);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  opacity: 0.7;
-}
-
-/* Tuning in: a short channel-change flicker the first time a screen appears.
-   Only with the script running, so content is never hidden without it. */
-.js .screen:not(.screen--boot) .screen__inner { opacity: 0; }
-.js .screen:not(.screen--boot).is-on .screen__inner { animation: tune-in 0.4s steps(5) both; }
-@keyframes tune-in {
-  0%   { opacity: 0; transform: translateX(-10px) skewX(5deg); filter: brightness(2.5) saturate(0); }
-  40%  { opacity: 1; transform: translateX(6px) skewX(-2deg); filter: brightness(1.5) saturate(0.4); }
-  70%  { transform: translateX(-2px); filter: none; }
-  100% { opacity: 1; transform: none; filter: none; }
-}
-
 /* Screen text: makes the page's text look as if it's on the same screen as
    the GEO_SC scene. Matches the homepage preset: a slight horizontal
    red/blue fringe (RGB shift, angle 0), a soft phosphor glow, and scanlines
@@ -415,34 +204,16 @@ main { position: relative; z-index: 1; }
     0.6px 0 rgb(40 140 255 / 0.55);
   --glow: 0 0 6px rgb(255 255 255 / 0.18);
   --legible: 0 1px 6px #000, 0 0 2px #000;   /* keeps text clear over the scene */
-  --scanlines: repeating-linear-gradient(to bottom, #000 0 2px, rgb(0 0 0 / 0.6) 2px 3px);
   --scanlines-soft: repeating-linear-gradient(to bottom, #000 0 2px, rgb(0 0 0 / 0.78) 2px 3px);
 }
 
 .screen { text-shadow: var(--fringe), var(--glow), var(--legible); }
-.osd,
-.screen__title,
-.slot--empty .slot__name,
-.signup__status,
-.boot__start a {
+.signup__status {
   /* the green text glows in its own colour, like phosphor */
   text-shadow: var(--fringe), 0 0 8px rgb(93 252 155 / 0.45), var(--legible);
 }
 .button { text-shadow: none; }   /* kept crisp: the fringe muddied it */
 
-.osd,
-.screen__title,
-.slot__name,
-.press__award strong,
-.quote blockquote,
-.contact dt {
-  -webkit-mask-image: var(--scanlines);
-  mask-image: var(--scanlines);
-}
-.slot__meta,
-.press__award span,
-.quote figcaption,
-.credits,
 .signup__label,
 .signup__small,
 .signup__status {
@@ -451,10 +222,8 @@ main { position: relative; z-index: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  .geo-hero, .geo-backdrop canvas, .geo-hero canvas, .disk img, .disk canvas { transition: none; }
-  .boot__start a, .cursor, .boot__after { animation: none; }
-  .js .boot__after, .js .screen--boot.is-ready .boot__after { animation: none; opacity: 1; visibility: visible; }
-  .js .screen:not(.screen--boot) .screen__inner { opacity: 1; }
-  .js .screen:not(.screen--boot).is-on .screen__inner { animation: none; }
+  .geo-hero canvas, .button--geo canvas { transition: none; }
+  .boot__after,
+  .js .boot__after,
+  .js .screen--boot.is-ready .boot__after { animation: none; opacity: 1; visibility: visible; }
 }

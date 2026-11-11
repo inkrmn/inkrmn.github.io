@@ -10,10 +10,8 @@
 </head>
 <body>
 
-<!-- The GEO_SC scene with no logo: the backdrop for every screen after the first -->
-<div class="geo-backdrop"><canvas aria-hidden="true"></canvas></div>
 
-<!-- The GEO_SC logo: fixed behind the first screen, fades out after it -->
+<!-- The GEO_SC logo, fixed behind the page -->
 <div class="geo-hero">
   <picture>
     <source media="(orientation: portrait)" srcset="/geo-sc/scenes/ink-mn-homepage/still-tall.jpg" width="1080" height="1920">
@@ -22,11 +20,9 @@
   <canvas aria-hidden="true"></canvas>
 </div>
 
-<p class="osd" aria-hidden="true">CH <span class="osd__num">01</span></p>
 
 <main>
-  <!-- Screen 1: boot -->
-  <section class="screen screen--boot" id="boot" data-ch="01">
+  <section class="screen screen--boot" id="boot">
     <div class="screen__inner">
       <h1 class="visually-hidden">INKRMN</h1>
       <div class="boot__after">
@@ -49,95 +45,7 @@
         <p class="signup__small">You can unsubscribe at any time.</p>
         <p class="signup__status" role="status" aria-live="polite"></p>
       </form>
-      <p class="boot__start"><a href="#releases">Press start <span aria-hidden="true">&#9660;</span></a></p>
       </div>
-    </div>
-  </section>
-
-  <!-- Screen 2: releases as save disks -->
-  <section class="screen" id="releases" data-ch="02" aria-labelledby="releases-title">
-    <div class="screen__inner">
-      <h2 class="screen__title" id="releases-title">Releases</h2>
-      <ul class="slots">
-        <li class="slot">
-          <div class="disk">
-            <img src="/img/disks/mad-2609.jpg" alt="Floppy disk labelled MAD (2609)" width="560" height="612" loading="lazy">
-            <canvas aria-hidden="true" data-scene="/scenes/disks/mad-2609/"></canvas>
-          </div>
-          <h3 class="slot__name">MAD (2609)</h3>
-          <p class="slot__meta">Slot 01 · Jan 2026</p>
-          <ul class="slot__links">
-            <li><a href="https://open.spotify.com/track/4iCSKMSPDU3NF3oxQlR2O1"><span class="visually-hidden">MAD (2609) on </span>Spotify</a></li>
-            <li><a href="https://music.apple.com/album/mad-2609/1856138068?i=1856138069"><span class="visually-hidden">MAD (2609) on </span>Apple Music</a></li>
-            <li><a href="https://tidal.com/track/476182448"><span class="visually-hidden">MAD (2609) on </span>Tidal</a></li>
-          </ul>
-        </li>
-        <li class="slot">
-          <div class="disk">
-            <img src="/img/disks/citizens.jpg" alt="Floppy disk labelled CITIZENS" width="560" height="612" loading="lazy">
-            <canvas aria-hidden="true" data-scene="/scenes/disks/citizens/"></canvas>
-          </div>
-          <h3 class="slot__name">CITIZENS</h3>
-          <p class="slot__meta">Slot 02 · May 2026</p>
-          <ul class="slot__links">
-            <li><a href="https://open.spotify.com/track/31hMxw8kiE0sMDLECA8Wh2"><span class="visually-hidden">CITIZENS on </span>Spotify</a></li>
-            <li><a href="https://music.apple.com/album/citizens/1885637311?i=1885637312"><span class="visually-hidden">CITIZENS on </span>Apple Music</a></li>
-            <li><a href="https://tidal.com/track/507530833"><span class="visually-hidden">CITIZENS on </span>Tidal</a></li>
-          </ul>
-        </li>
-        <li class="slot">
-          <div class="disk">
-            <img src="/img/disks/fever-u-got-me.jpg" alt="Floppy disk labelled FEVER (U GOT ME)" width="560" height="612" loading="lazy">
-            <canvas aria-hidden="true" data-scene="/scenes/disks/fever-u-got-me/"></canvas>
-          </div>
-          <h3 class="slot__name">FEVER (U GOT ME)</h3>
-          <p class="slot__meta">Slot 03 · Jul 2026</p>
-          <ul class="slot__links">
-            <li><a href="https://open.spotify.com/track/2mQLLEfIZfbfLNKJ6dnxPU"><span class="visually-hidden">FEVER (U GOT ME) on </span>Spotify</a></li>
-            <li><a href="https://music.apple.com/album/fever-u-got-me/6771623426?i=6771623427"><span class="visually-hidden">FEVER (U GOT ME) on </span>Apple Music</a></li>
-            <li><a href="https://tidal.com/track/526502569"><span class="visually-hidden">FEVER (U GOT ME) on </span>Tidal</a></li>
-          </ul>
-        </li>
-        <li class="slot slot--empty">
-          <div class="disk disk--empty" aria-hidden="true">?</div>
-          <h3 class="slot__name">No data</h3>
-          <p class="slot__meta">Slot 04 · <span class="cursor" aria-hidden="true"></span></p>
-        </li>
-      </ul>
-    </div>
-  </section>
-
-  <!-- Screen 3: press -->
-  <section class="screen" id="press" data-ch="03" aria-labelledby="press-title">
-    <div class="screen__inner">
-      <h2 class="screen__title" id="press-title">Press</h2>
-      <div class="press">
-        <p class="press__award">
-          <strong>Track of the Week</strong>
-          <span>CITIZENS · BBC Introducing Leeds and Sheffield</span>
-        </p>
-        <figure class="quote">
-          <blockquote><p>Most exciting and original music in the uploader</p></blockquote>
-          <figcaption>Christian Carlisle</figcaption>
-        </figure>
-        <figure class="quote">
-          <blockquote><p>Stunning</p></blockquote>
-          <figcaption>Emily Pilbeam</figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- Screen 4: contact -->
-  <section class="screen" id="contact" data-ch="04" aria-labelledby="contact-title">
-    <div class="screen__inner">
-      <h2 class="screen__title" id="contact-title">Contact</h2>
-      <dl class="contact">
-        <div><dt>General</dt><dd><a href="mailto:hello@inkr.mn">hello@inkr.mn</a></dd></div>
-        <div><dt>Bookings</dt><dd><a href="mailto:bookings@inkr.mn">bookings@inkr.mn</a></dd></div>
-        <div><dt>Instagram</dt><dd><a href="https://www.instagram.com/inkr.mn/">@inkr.mn</a></dd></div>
-      </dl>
-      <p class="credits">Photography: Ell Miller, Andy Little, Louis Marlowe</p>
     </div>
   </section>
 </main>
