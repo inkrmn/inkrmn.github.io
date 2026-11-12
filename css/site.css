@@ -123,22 +123,30 @@ main { position: relative; z-index: 1; }
 .button--geo {
   position: relative;
   width: min(20rem, 82vw);
-  aspect-ratio: 6.4;
+  aspect-ratio: 1405 / 181;   /* the mail-button image's shape */
   padding: 0;
 }
 .button--geo canvas {
+  /* GEO_SC fits the image to about 94% of the canvas width, so a canvas 112%
+     of the button's width draws the box just round the button. The extra
+     height gives the effects room. Only the outer edges fade, so the scene's
+     background doesn't show as a hard rectangle. */
   position: absolute;
-  left: -11%;
-  top: -40%;
-  width: 122%;
-  height: 180%;
+  left: -6%;
+  top: -50%;
+  width: 112%;
+  height: 200%;
   display: block;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.6s ease;
   mix-blend-mode: screen;   /* the scene's dark background drops away */
-  -webkit-mask-image: radial-gradient(closest-side, #000 75%, transparent);
-  mask-image: radial-gradient(closest-side, #000 75%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 2%, #000 98%, transparent),
+                      linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 2%, #000 98%, transparent),
+              linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  mask-composite: intersect;
 }
 .button--geo.is-geo { border-color: transparent; background: none; }
 .button--geo.is-geo .button__label { opacity: 0; }
