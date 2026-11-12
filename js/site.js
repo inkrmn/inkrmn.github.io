@@ -92,20 +92,36 @@ function revealJoinButton(loading) {
   });
 }
 
-// Streamers ease up to full while the button is hovered or has keyboard
-// focus, and back down to the preset's value after.
+// On hover or keyboard focus the button eases to the scan's red/orange
+// (the preset's accent colour) and the streamers go to full; both ease back
+// after.
+const HOVER_SECONDS = 0.35; // how long the change takes
+
+function hexToRgb(hex) {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+const rgbToHex = (rgb) => '#' + rgb.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
+
 function streamersOnHover(player) {
-  const rest = player.settings.stream;
-  let target = rest;
+  const s = player.settings;
+  const rest = { stream: s.stream, ink: hexToRgb(s.ink) };
+  const hover = { stream: STREAMERS_MAX, ink: hexToRgb(s.accent) };
+  let k = 0; // 0 = resting, 1 = full hover
+  let target = 0;
   let raf = 0;
-  const step = () => {
-    const s = player.settings;
-    s.stream += (target - s.stream) * 0.2;
-    if (Math.abs(target - s.stream) < 0.002) { s.stream = target; raf = 0; return; }
+  let last = 0;
+  const step = (now) => {
+    const dt = last ? (now - last) / 1000 : 0;
+    last = now;
+    k += Math.sign(target - k) * Math.min(Math.abs(target - k), dt / HOVER_SECONDS);
+    s.stream = rest.stream + (hover.stream - rest.stream) * k;
+    s.ink = rgbToHex(rest.ink.map((v, i) => v + (hover.ink[i] - v) * k));
+    if (k === target) { raf = 0; last = 0; return; }
     raf = requestAnimationFrame(step);
   };
   const aim = () => {
-    target = joinButton.matches(':hover, :focus-visible') ? STREAMERS_MAX : rest;
+    target = joinButton.matches(':hover, :focus-visible') ? 1 : 0;
     if (!raf) raf = requestAnimationFrame(step);
   };
   ['pointerenter', 'pointerleave', 'focus', 'blur'].forEach((type) =>

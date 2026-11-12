@@ -144,9 +144,18 @@ main { position: relative; }
    and its text stay underneath for tapping, keyboards and screen readers; the
    plain button above shows if the render can't run. The canvas is larger than
    the button because the render leaves a margin round the image. */
+/* Easy to change:
+   --join-width        how wide the button is (laptops and bigger)
+   --join-width-phone  how wide it is on phones (screens under 40rem)
+   --join-opacity      1 = solid; lower lets more of the logo's scene through */
+:root {
+  --join-width: min(28rem, 88vw);
+  --join-width-phone: 53vw;
+  --join-opacity: 0.8;
+}
 .button--geo {
   position: relative;
-  width: min(28rem, 88vw);
+  width: var(--join-width);
   aspect-ratio: 2048 / 500;   /* the button image's shape (scenes/join-button/logo.png) */
   padding: 0;
 }
@@ -177,7 +186,10 @@ main { position: relative; }
 .button--geo.is-loading { visibility: hidden; }
 .button--geo.is-geo { border-color: transparent; background: none; }
 .button--geo.is-geo .button__label { opacity: 0; }
-.button--geo.is-geo canvas { opacity: 1; }
+.button--geo.is-geo canvas { opacity: var(--join-opacity); }
+@media (max-width: 40rem) {
+  .button--geo { width: var(--join-width-phone); }
+}
 .button--geo.is-geo:hover,
 .button--geo.is-geo:focus-visible { background: none; }
 .button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
