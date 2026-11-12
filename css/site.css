@@ -127,6 +127,8 @@ main { position: relative; }
 .js .screen--boot.is-ready .boot__after { opacity: 1; visibility: visible; }
 .boot__signup { margin: 0 0 0.75rem; }
 .button {
+  display: inline-block;
+  text-decoration: none;
   padding: 0.8rem 1.6rem;
   border: 2px solid var(--green);
   border-radius: 0;
@@ -195,47 +197,99 @@ main { position: relative; }
 .button--geo.is-geo:focus-visible { background: none; }
 .button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
 /* Mailing list form. Hidden behind the Sign up button once the script runs. */
-.signup {
-  max-width: 22rem;
-  margin: 0 auto 1rem;
-  pointer-events: auto;
+/* Join page. The text is drawn in the particles' ink and added to the
+   scene's light (screen blend), with scanlines at the scene's own spacing,
+   so it reads as part of the same picture rather than sitting on it. */
+:root {
+  --ink: #cfe6da;          /* the particles' mint, as it comes out of the logo scene */
+  --ink-hover: #ff4013;    /* the scan's red/orange (the presets' accent) */
+  /* The logo scene draws 910 CRT lines down the screen; these pair them up. */
+  --scene-lines: repeating-linear-gradient(to bottom,
+    #000 0 calc(100vh / 910), rgb(0 0 0 / 0.55) calc(100vh / 910) calc(200vh / 910));
 }
-.js .signup:not(.is-open) { display: none; }
-.signup__label {
-  display: block;
-  margin-bottom: 0.6rem;
-  font: 0.8rem/1.4 var(--font-screen);
-  letter-spacing: 0.1em;
+.screen--join { pointer-events: auto; }
+.join {
+  width: min(24rem, 100%);
+  text-align: center;
+  color: var(--ink);
+  mix-blend-mode: screen;
+  -webkit-mask-image: var(--scene-lines);
+  mask-image: var(--scene-lines);
+}
+.js .join { opacity: 0; transition: opacity 0.8s ease; }
+.js .join.is-ready { opacity: 1; }
+.join__title {
+  margin: 0 0 0.4rem;
+  font: 900 clamp(1.4rem, 6vw, 2rem)/1.1 var(--font-main);
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
+.join__lede {
+  margin: 0 0 1.6rem;
+  font: 0.85rem/1.4 var(--font-main);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
 .signup__row { display: flex; gap: 0.5rem; }
+.signup__email,
+.signup__submit {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: 0 0 10px rgb(207 230 218 / 0.25), inset 0 0 10px rgb(207 230 218 / 0.12);
+}
 .signup__email {
   flex: 1;
   min-width: 0;
   padding: 0.75rem 0.8rem;
-  border: 2px solid var(--green);
-  border-radius: 0;
-  background: rgb(1 1 3 / 0.75);
-  color: var(--paper);
-  font: 1rem/1 var(--font-screen);   /* 16px or more stops iPhones zooming in */
+  font: 1rem/1 var(--font-main);   /* 16px or more stops iPhones zooming in */
+  letter-spacing: 0.06em;
 }
-.signup__email::placeholder { color: rgb(235 231 216 / 0.55); }
-.signup__email:focus-visible { outline: 2px solid var(--paper); outline-offset: 2px; }
-.signup__submit { padding: 0.75rem 1rem; letter-spacing: 0.15em; }
-.signup__submit:disabled { opacity: 0.5; cursor: wait; }
-.signup__small,
-.signup__status {
-  margin: 0.6rem 0 0;
-  font: 0.7rem/1.4 var(--font-screen);
+.signup__email::placeholder { color: var(--ink); opacity: 0.5; text-transform: uppercase; }
+.signup__submit {
+  padding: 0.75rem 1.1rem;
+  font: 900 1rem/1 var(--font-main);
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.75;
+  cursor: pointer;
+  transition: color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
-.signup__status { color: var(--green); opacity: 1; }
+.signup__submit:hover,
+.signup__submit:focus-visible {
+  color: var(--ink-hover);
+  border-color: var(--ink-hover);
+  box-shadow: 0 0 12px rgb(255 64 19 / 0.4), inset 0 0 10px rgb(255 64 19 / 0.2);
+}
+.signup__submit:disabled { opacity: 0.5; cursor: wait; }
+/* Focus rings sit inside the boxes, so the scanline mask can't clip them. */
+.signup__email:focus-visible,
+.signup__submit:focus-visible { outline: 2px solid currentColor; outline-offset: -6px; }
+.signup__small,
+.signup__status {
+  margin: 0.8rem 0 0;
+  font: 0.7rem/1.4 var(--font-main);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.signup__status { opacity: 1; }
 .signup__status:empty { display: none; }
 .signup.is-done .signup__row,
-.signup.is-done .signup__label,
 .signup.is-done .signup__small { display: none; }
+.join__back { margin: 2rem 0 0; }
+.join__back a {
+  color: var(--ink);
+  font: 0.75rem/1 var(--font-main);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-underline-offset: 0.3em;
+  transition: color 0.35s ease;
+}
+.join__back a:hover,
+.join__back a:focus-visible { color: var(--ink-hover); }
+.join__back a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
 
 /* Screen text: makes the page's text look as if it's on the same screen as
    the GEO_SC scene. Matches the homepage preset: a slight horizontal
@@ -254,20 +308,11 @@ main { position: relative; }
 }
 
 .screen { text-shadow: var(--fringe), var(--glow), var(--legible); }
-.signup__status {
-  /* the green text glows in its own colour, like phosphor */
-  text-shadow: var(--fringe), 0 0 8px rgb(93 252 155 / 0.45), var(--legible);
-}
 .button { text-shadow: none; }   /* kept crisp: the fringe muddied it */
 
-.signup__label,
-.signup__small,
-.signup__status {
-  -webkit-mask-image: var(--scanlines-soft);   /* lighter on small text */
-  mask-image: var(--scanlines-soft);
-}
 
 @media (prefers-reduced-motion: reduce) {
   .geo-hero canvas, .js .geo-hero img, .button--geo canvas { transition: none; }
   .js .boot__after { transition: none; opacity: 1; visibility: visible; }
+  .js .join, .signup__submit, .join__back a { transition: none; }
 }

@@ -30,24 +30,11 @@
       <h1 class="visually-hidden">INKRMN</h1>
       <div class="boot__after">
       <p class="boot__signup">
-        <button type="button" class="button button--geo" aria-expanded="false" aria-controls="signup">
+        <a class="button button--geo" href="/join/">
           <span class="button__label">Join mailing list</span>
           <canvas aria-hidden="true" data-scene="/scenes/join-button/"></canvas>
-        </button>
+        </a>
       </p>
-      <!-- Mailing list (MailerLite form 203775095803479416). Without the script it
-           still works: it posts straight to MailerLite in a new tab. -->
-      <form class="signup" id="signup" action="https://assets.mailerlite.com/jsonp/2785189/forms/203775095803479416/subscribe" method="post" target="_blank">
-        <label class="signup__label" for="signup-email">Get new music and dates first</label>
-        <div class="signup__row">
-          <input class="signup__email" id="signup-email" type="email" name="fields[email]" placeholder="Email" autocomplete="email" required>
-          <button class="button signup__submit" type="submit">Join</button>
-        </div>
-        <input type="hidden" name="ml-submit" value="1">
-        <input type="hidden" name="anticsrf" value="true">
-        <p class="signup__small">You can unsubscribe at any time.</p>
-        <p class="signup__status" role="status" aria-live="polite"></p>
-      </form>
       </div>
     </div>
   </section>
