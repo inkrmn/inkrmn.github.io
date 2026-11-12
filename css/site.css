@@ -1,5 +1,16 @@
 /* INKRMN site styles */
 
+/* Archivo (open source, SIL Open Font License: fonts/Archivo-OFL.txt).
+   One file inside the site covers weights 400 to 900, Latin characters only.
+   Arial shows until it loads, and stays if it can't. */
+@font-face {
+  font-family: "Archivo";
+  src: url("/fonts/archivo-latin.woff") format("woff");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Midnight Magic palette */
 :root {
   --edge: #010103;       /* the GEO_SC render's edge colour: page and browser bars */
@@ -10,7 +21,7 @@
   --green: #5dfc9b;      /* phosphor green: screen text, links, highlights */
   --paper: #ebe7d8;      /* body text */
 
-  --font-main: Arial, Helvetica, sans-serif;
+  --font-main: "Archivo", Arial, Helvetica, sans-serif;
   --font-screen: "Courier New", Courier, monospace; /* stand-in for a terminal font */
 }
 

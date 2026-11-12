@@ -32,7 +32,7 @@ form.addEventListener('submit', async (event) => {
       body: new URLSearchParams(new FormData(form)),
     });
     form.classList.add('is-done');
-    status.textContent = "Thanks. You're on the list.";
+    status.textContent = 'Nearly there. Check your email and tap the link to confirm.';
   } catch (err) {
     console.warn(err);
     submit.disabled = false;
