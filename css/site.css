@@ -122,7 +122,7 @@ main { position: relative; }
 .js .boot__after {
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.8s ease 3s, visibility 0s linear 3s;
+  transition: opacity 0.8s ease, visibility 0s;
 }
 .js .screen--boot.is-ready .boot__after { opacity: 1; visibility: visible; }
 .boot__signup { margin: 0 0 0.75rem; }
@@ -160,25 +160,26 @@ main { position: relative; }
   padding: 0;
 }
 .button--geo canvas {
-  /* GEO_SC fits the image to about 94% of the canvas width, so a canvas 112%
-     of the button's width draws the box just round the button. The extra
-     height gives the effects room. Only the outer edges fade, so the scene's
-     background doesn't show as a hard rectangle. */
+  /* A drawing area well beyond the button, so the cloud the particles start
+     as has room to hang and fade out softly at the edges. GEO_SC fits the
+     image to about 94% of the canvas width at scale 1.17; the scene's scale
+     (0.874) is set so the image lands on the button inside this 150%-wide
+     canvas. Change the size here and that scale together. */
   position: absolute;
-  left: -6%;
-  top: -50%;
-  width: 112%;
-  height: 200%;
+  left: -25%;
+  top: -100%;
+  width: 150%;
+  height: 300%;
   display: block;
   pointer-events: none;
   opacity: 0;
   transition: opacity 0.6s ease;
   mix-blend-mode: screen;   /* the scene's dark background drops away */
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 2%, #000 98%, transparent),
-                      linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
+                      linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 2%, #000 98%, transparent),
-              linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
+  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
+              linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
   mask-composite: intersect;
 }
 /* While the particle version loads, the button stays hidden rather than

@@ -7,15 +7,13 @@ document.documentElement.classList.add('js');
 // 1. GEO_SC: the logo behind the page. The still stays if anything goes wrong.
 const hero = document.querySelector('.geo-hero');
 
-// The button appears three seconds after the logo first shows. If the logo
-// can't run, the still counts instead.
+// Once the logo first shows (or the still, if it can't run), the button's
+// particles come in as a cloud and slowly settle into the button.
 const boot = document.getElementById('boot');
-const REVEAL_MS = 3000; // matches the delay on .boot__after in the CSS
 const bootReady = () => {
   if (boot.classList.contains('is-ready')) return;
   boot.classList.add('is-ready');
-  const player = mountJoinButton(); // loads while the logo plays alone
-  setTimeout(() => revealJoinButton(player), REVEAL_MS);
+  revealJoinButton(mountJoinButton());
 };
 // The still stays hidden unless the live logo can't run, or hasn't drawn
 // after a few seconds.
@@ -45,6 +43,12 @@ const joinButton = document.querySelector('.button--geo');
 const joinCanvas = joinButton && joinButton.querySelector('canvas');
 if (joinCanvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) joinButton.classList.add('is-loading');
 
+// The cloud: how spread out it starts (0 = no cloud), how long it hangs
+// before settling, and how long settling takes.
+const CLOUD_SCATTER = 0.6;
+const CLOUD_HOLD_MS = 1500;
+const CLOUD_SECONDS = 4;
+
 const LOGO_CRT_LINES = 910; // the homepage scene's line count
 const STREAMERS_MAX = 0.4; // GEO_SC's top Streamers value
 const BUTTON_LOOK = {
@@ -68,7 +72,8 @@ async function mountJoinButton() {
       [scene.files.logo]: new URL(scene.files.logo, base).href,
       [scene.files.depth]: new URL(scene.files.depth, base).href,
     };
-    const player = await mount(joinCanvas, { scene, form: true, mobileScale: 1, minDensity: 420 });
+    const player = await mount(joinCanvas, { scene, form: true, mobileScale: 1, minDensity: 900 });
+    if (player) player.settings.scatter = CLOUD_SCATTER; // set live: scene settings only keep GEO_SC's own
     player?.pause(); // nothing to draw until it forms
     return player;
   } catch (err) {
@@ -86,10 +91,25 @@ function revealJoinButton(loading) {
     joinButton.classList.remove('is-loading');
     joinButton.classList.add('is-geo');
     player.resume();
-    player.form();
+    player.form(); // the particles fade in, already scattered as a cloud
+    setTimeout(() => settleCloud(player), CLOUD_HOLD_MS);
     addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
     streamersOnHover(player);
   });
+}
+
+// Eases the scatter from the cloud down to nothing: slow at the start and
+// end, like the particles drifting together.
+function settleCloud(player) {
+  const from = CLOUD_SCATTER;
+  const start = performance.now();
+  const step = (now) => {
+    const t = Math.min(1, (now - start) / (CLOUD_SECONDS * 1000));
+    const ease = t * t * (3 - 2 * t);
+    player.settings.scatter = from * (1 - ease);
+    if (t < 1) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 // On hover or keyboard focus the button eases to the scan's red/orange
