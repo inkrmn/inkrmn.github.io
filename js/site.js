@@ -18,13 +18,56 @@ const bootReady = () => {
 
 // The Join mailing list button in particles. If it can't run, the plain
 // button stays.
-function mountJoinButton() {
+//
+// A few of the preset's settings are changed here, on the page only, so the
+// button looks like part of the logo's screen rather than a panel on top:
+// - its own background, vignette and dither paper go black, so (with the
+//   CSS screen blend) only the particles show and the page's own scene
+//   shows round them;
+// - its CRT scanlines are spaced to match the logo scene's, which counts
+//   its lines over the whole screen height rather than the button's;
+// - the scan only runs on hover, keyboard focus, or while the form is open.
+const LOGO_CRT_LINES = 910; // the homepage scene's line count
+const BUTTON_LOOK = {
+  bg: 'plain',
+  bg_plain_c1: '#000000',
+  fx_crt_vignette: 0,
+  fx_dither_c1: '#000000',
+  fx_ascii_c2: '#000000',
+  scan: false,
+};
+
+async function mountJoinButton() {
   const button = document.querySelector('.button--geo');
   const canvas = button && button.querySelector('canvas');
   if (!canvas) return;
-  mount(canvas, { scene: canvas.dataset.scene, mobileScale: 1, minDensity: 420 })
-    .then((player) => { if (player) button.classList.add('is-geo'); })
-    .catch((err) => console.warn(err));
+  try {
+    const base = new URL(canvas.dataset.scene, location.href);
+    const scene = await (await fetch(new URL('scene.json', base))).json();
+    Object.assign(scene.settings, BUTTON_LOOK);
+    scene.embedded = {
+      [scene.files.logo]: new URL(scene.files.logo, base).href,
+      [scene.files.depth]: new URL(scene.files.depth, base).href,
+    };
+    const crtLines = () =>
+      Math.max(60, Math.round((LOGO_CRT_LINES * canvas.clientHeight) / hero.clientHeight));
+    scene.settings.fx_crt_lines = crtLines();
+
+    const player = await mount(canvas, { scene, mobileScale: 1, minDensity: 420 });
+    if (!player) return;
+    button.classList.add('is-geo');
+
+    addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
+
+    const scan = () => {
+      player.settings.scan =
+        button.matches(':hover, :focus-visible') || button.getAttribute('aria-expanded') === 'true';
+    };
+    ['pointerenter', 'pointerleave', 'focus', 'blur', 'click'].forEach((type) =>
+      button.addEventListener(type, () => setTimeout(scan)));
+  } catch (err) {
+    console.warn(err);
+  }
 }
 setTimeout(bootReady, 6000); // never leave the button hidden for long
 

@@ -71,7 +71,9 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 .geo-hero canvas.is-ready { opacity: 1; }
 
 /* The one screen */
-main { position: relative; z-index: 1; }
+/* Drawn after (so above) the fixed scene, without its own layer: the
+   button's particles have to blend straight onto the scene behind. */
+main { position: relative; }
 
 .screen {
   min-height: 100vh;
@@ -84,23 +86,28 @@ main { position: relative; z-index: 1; }
 }
 .screen__inner { width: 100%; max-width: 62rem; }
 
-/* Boot screen. Clear, so the logo shows; taps pass through to it. */
+/* Boot screen. Clear, so the logo shows; taps pass through to it.
+   The button sits a little below the logo: the logo is centred and its
+   height follows the screen width, so the gap does too. */
 .screen--boot {
-  align-items: flex-end;
+  align-items: flex-start;
+  padding-top: min(calc(50vh + 14vw), 74vh);
+  padding-top: min(calc(50svh + 14vw), 74svh);
   pointer-events: none;
   text-align: center;
 }
 .screen--boot a { pointer-events: auto; }
 /* The logo plays alone for a few seconds, then the button appears. */
-/* Without the script, timed from page load. With it, timed from when the logo
-   first shows (js/site.js adds .is-ready to the boot screen). */
-.boot__after { animation: boot-after 0.8s ease 3s both; }
-.js .boot__after { animation: none; opacity: 0; visibility: hidden; }
-.js .screen--boot.is-ready .boot__after { animation: boot-after 0.8s ease 3s both; }
-@keyframes boot-after {
-  from { opacity: 0; visibility: hidden; }
-  to   { opacity: 1; visibility: visible; }
+/* Timed from when the logo first shows (js/site.js adds .is-ready to the
+   boot screen); without the script it's simply there. A transition rather
+   than an animation: once it ends nothing is left holding the button in a
+   layer of its own, so its particles blend onto the scene. */
+.js .boot__after {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease 3s, visibility 0s linear 3s;
 }
+.js .screen--boot.is-ready .boot__after { opacity: 1; visibility: visible; }
 .boot__signup { margin: 0 0 0.75rem; }
 .button {
   padding: 0.8rem 1.6rem;
@@ -122,7 +129,7 @@ main { position: relative; z-index: 1; }
    the button because the render leaves a margin round the image. */
 .button--geo {
   position: relative;
-  width: min(20rem, 82vw);
+  width: min(28rem, 88vw);
   aspect-ratio: 1405 / 181;   /* the mail-button image's shape */
   padding: 0;
 }
@@ -153,8 +160,6 @@ main { position: relative; z-index: 1; }
 .button--geo.is-geo canvas { opacity: 1; }
 .button--geo.is-geo:hover,
 .button--geo.is-geo:focus-visible { background: none; }
-.button--geo.is-geo:hover canvas,
-.button--geo.is-geo:focus-visible canvas { filter: brightness(1.5); }
 .button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
 /* Mailing list form. Hidden behind the Sign up button once the script runs. */
 .signup {
@@ -231,7 +236,5 @@ main { position: relative; z-index: 1; }
 
 @media (prefers-reduced-motion: reduce) {
   .geo-hero canvas, .button--geo canvas { transition: none; }
-  .boot__after,
-  .js .boot__after,
-  .js .screen--boot.is-ready .boot__after { animation: none; opacity: 1; visibility: visible; }
+  .js .boot__after { transition: none; opacity: 1; visibility: visible; }
 }
