@@ -7,17 +7,26 @@ document.documentElement.classList.add('js');
 // 1. GEO_SC: the logo behind the page. The still stays if anything goes wrong.
 const hero = document.querySelector('.geo-hero');
 
-// The button appears three seconds after the logo first shows (the CSS does
-// the waiting). If the logo can't run, the still counts instead.
+// The button appears three seconds after the logo first shows. If the logo
+// can't run, the still counts instead.
 const boot = document.getElementById('boot');
+const REVEAL_MS = 3000; // matches the delay on .boot__after in the CSS
 const bootReady = () => {
   if (boot.classList.contains('is-ready')) return;
   boot.classList.add('is-ready');
-  setTimeout(mountJoinButton, 2600); // just before the button fades in
+  const player = mountJoinButton(); // loads while the logo plays alone
+  setTimeout(() => revealJoinButton(player), REVEAL_MS);
 };
+setTimeout(bootReady, 6000); // never leave the button hidden for long
 
-// The Join mailing list button in particles. If it can't run, the plain
-// button stays.
+mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
+  .then(bootReady)
+  .catch((err) => { console.warn(err); bootReady(); });
+
+// The Join mailing list button in particles. It loads empty while the logo
+// plays, then the particles fly in and form it, like pressing Space in GEO_SC.
+// If GEO_SC can't run here (no WebGL2, reduced motion, or it's too slow to
+// load), the plain button shows instead.
 //
 // A few of the preset's settings are changed here, on the page only, so the
 // button looks like part of the logo's screen rather than a panel on top:
@@ -26,8 +35,13 @@ const bootReady = () => {
 //   shows round them;
 // - its CRT scanlines are spaced to match the logo scene's, which counts
 //   its lines over the whole screen height rather than the button's;
-// - the scan only runs on hover, keyboard focus, or while the form is open.
+// - no scan. Instead the streamers go to full on hover.
+const joinButton = document.querySelector('.button--geo');
+const joinCanvas = joinButton && joinButton.querySelector('canvas');
+if (joinCanvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) joinButton.classList.add('is-loading');
+
 const LOGO_CRT_LINES = 910; // the homepage scene's line count
+const STREAMERS_MAX = 0.4; // GEO_SC's top Streamers value
 const BUTTON_LOOK = {
   bg: 'plain',
   bg_plain_c1: '#000000',
@@ -36,44 +50,62 @@ const BUTTON_LOOK = {
   fx_ascii_c2: '#000000',
   scan: false,
 };
+const crtLines = () =>
+  Math.max(60, Math.round((LOGO_CRT_LINES * joinCanvas.clientHeight) / hero.clientHeight));
 
 async function mountJoinButton() {
-  const button = document.querySelector('.button--geo');
-  const canvas = button && button.querySelector('canvas');
-  if (!canvas) return;
+  if (!joinCanvas) return null;
   try {
-    const base = new URL(canvas.dataset.scene, location.href);
+    const base = new URL(joinCanvas.dataset.scene, location.href);
     const scene = await (await fetch(new URL('scene.json', base))).json();
-    Object.assign(scene.settings, BUTTON_LOOK);
+    Object.assign(scene.settings, BUTTON_LOOK, { fx_crt_lines: crtLines() });
     scene.embedded = {
       [scene.files.logo]: new URL(scene.files.logo, base).href,
       [scene.files.depth]: new URL(scene.files.depth, base).href,
     };
-    const crtLines = () =>
-      Math.max(60, Math.round((LOGO_CRT_LINES * canvas.clientHeight) / hero.clientHeight));
-    scene.settings.fx_crt_lines = crtLines();
-
-    const player = await mount(canvas, { scene, mobileScale: 1, minDensity: 420 });
-    if (!player) return;
-    button.classList.add('is-geo');
-
-    addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
-
-    const scan = () => {
-      player.settings.scan =
-        button.matches(':hover, :focus-visible') || button.getAttribute('aria-expanded') === 'true';
-    };
-    ['pointerenter', 'pointerleave', 'focus', 'blur', 'click'].forEach((type) =>
-      button.addEventListener(type, () => setTimeout(scan)));
+    const player = await mount(joinCanvas, { scene, form: true, mobileScale: 1, minDensity: 420 });
+    player?.pause(); // nothing to draw until it forms
+    return player;
   } catch (err) {
     console.warn(err);
+    return null;
   }
 }
-setTimeout(bootReady, 6000); // never leave the button hidden for long
 
-mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
-  .then(bootReady)
-  .catch((err) => { console.warn(err); bootReady(); });
+function revealJoinButton(loading) {
+  const plain = () => joinButton?.classList.remove('is-loading');
+  const fallback = setTimeout(plain, 4000); // still loading after this: show the plain button
+  loading.then((player) => {
+    if (!player) return plain();
+    clearTimeout(fallback);
+    joinButton.classList.remove('is-loading');
+    joinButton.classList.add('is-geo');
+    player.resume();
+    player.form();
+    addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
+    streamersOnHover(player);
+  });
+}
+
+// Streamers ease up to full while the button is hovered or has keyboard
+// focus, and back down to the preset's value after.
+function streamersOnHover(player) {
+  const rest = player.settings.stream;
+  let target = rest;
+  let raf = 0;
+  const step = () => {
+    const s = player.settings;
+    s.stream += (target - s.stream) * 0.2;
+    if (Math.abs(target - s.stream) < 0.002) { s.stream = target; raf = 0; return; }
+    raf = requestAnimationFrame(step);
+  };
+  const aim = () => {
+    target = joinButton.matches(':hover, :focus-visible') ? STREAMERS_MAX : rest;
+    if (!raf) raf = requestAnimationFrame(step);
+  };
+  ['pointerenter', 'pointerleave', 'focus', 'blur'].forEach((type) =>
+    joinButton.addEventListener(type, () => setTimeout(aim)));
+}
 
 // 2. Sign up. The button opens the form; the form sends the address to
 //    MailerLite in the background, so nobody leaves the page. MailerLite then

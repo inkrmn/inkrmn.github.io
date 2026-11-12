@@ -155,6 +155,9 @@ main { position: relative; }
               linear-gradient(to bottom, transparent, #000 20%, #000 80%, transparent);
   mask-composite: intersect;
 }
+/* While the particle version loads, the button stays hidden rather than
+   showing the plain one first. */
+.button--geo.is-loading { visibility: hidden; }
 .button--geo.is-geo { border-color: transparent; background: none; }
 .button--geo.is-geo .button__label { opacity: 0; }
 .button--geo.is-geo canvas { opacity: 1; }
