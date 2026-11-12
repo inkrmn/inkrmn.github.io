@@ -18,6 +18,11 @@
 
 html, body {
   margin: 0;
+  /* One fixed screen for now: nothing scrolls, so nothing shifts (on phones,
+     scrolling also slides the browser's toolbars, which moved the button). */
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
   background: var(--edge);
   color: var(--paper);
   font-family: var(--font-main);
@@ -80,8 +85,9 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 main { position: relative; }
 
 .screen {
-  min-height: 100vh;
-  min-height: 100svh;
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100svh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -99,6 +105,13 @@ main { position: relative; }
   padding-top: min(calc(50svh + 14vw), 74svh);
   pointer-events: none;
   text-align: center;
+}
+/* Phones: a little lower, with more space under the logo. */
+@media (max-width: 40rem) {
+  .screen--boot {
+    padding-top: min(calc(50vh + 26vw), 70vh);
+    padding-top: min(calc(50svh + 26vw), 70svh);
+  }
 }
 .screen--boot a { pointer-events: auto; }
 /* The logo plays alone for a few seconds, then the button appears. */
