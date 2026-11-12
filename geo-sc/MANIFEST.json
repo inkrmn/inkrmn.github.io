@@ -1,13 +1,23 @@
 {
   "note": "Written by GEO_SC (npm run web). Re-run that to update this folder; edits here are overwritten.",
-  "created": "2026-11-09T22:13:15.896Z",
+  "created": "2026-11-12T11:01:53.038Z",
   "geoScCommit": "e6b4062",
   "engine": "14f6d83831b46d29823a91a16ac52f5c1e8274a3e36e16fb34190611e4d33349",
   "scenes": [
     {
+      "name": "floppy-disk",
+      "preset": "floppy-disk",
+      "exported": "2026-11-10T01:04:38.314Z"
+    },
+    {
       "name": "ink-mn-homepage",
       "preset": "ink.mn homepage",
       "exported": "2026-11-09T22:11:41.644Z"
+    },
+    {
+      "name": "mail-button",
+      "preset": "mail button",
+      "exported": "2026-11-12T11:01:45.958Z"
     }
   ],
   "files": [
@@ -21,11 +31,21 @@
     "math.js",
     "player.js",
     "renderer.js",
+    "scenes/floppy-disk/depth.png",
+    "scenes/floppy-disk/logo.png",
+    "scenes/floppy-disk/scene.json",
+    "scenes/floppy-disk/still-tall.jpg",
+    "scenes/floppy-disk/still-wide.jpg",
     "scenes/ink-mn-homepage/depth.png",
     "scenes/ink-mn-homepage/logo.png",
     "scenes/ink-mn-homepage/scene.json",
     "scenes/ink-mn-homepage/still-tall.jpg",
     "scenes/ink-mn-homepage/still-wide.jpg",
+    "scenes/mail-button/depth.png",
+    "scenes/mail-button/logo.png",
+    "scenes/mail-button/scene.json",
+    "scenes/mail-button/still-tall.jpg",
+    "scenes/mail-button/still-wide.jpg",
     "shaders.js"
   ]
 }
