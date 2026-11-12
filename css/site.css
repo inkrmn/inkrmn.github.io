@@ -69,6 +69,10 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   transition: opacity 0.6s ease;
 }
 .geo-hero canvas.is-ready { opacity: 1; }
+/* With the script, the still waits: the live logo fades in over black, and
+   the still only shows if GEO_SC can't run or is slow (js/site.js). */
+.js .geo-hero img { opacity: 0; transition: opacity 0.6s ease; }
+.js .geo-hero.show-still img { opacity: 1; }
 
 /* The one screen */
 /* Drawn after (so above) the fixed scene, without its own layer: the
@@ -130,7 +134,7 @@ main { position: relative; }
 .button--geo {
   position: relative;
   width: min(28rem, 88vw);
-  aspect-ratio: 1405 / 181;   /* the mail-button image's shape */
+  aspect-ratio: 2048 / 500;   /* the button image's shape (scenes/join-button/logo.png) */
   padding: 0;
 }
 .button--geo canvas {
@@ -238,6 +242,6 @@ main { position: relative; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .geo-hero canvas, .button--geo canvas { transition: none; }
+  .geo-hero canvas, .js .geo-hero img, .button--geo canvas { transition: none; }
   .js .boot__after { transition: none; opacity: 1; visibility: visible; }
 }

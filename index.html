@@ -6,6 +6,9 @@
   <title>INKRMN</title>
   <meta name="description" content="INKRMN. Unpredictable, texture-heavy pop for fans of genre-blurring sound design.">
   <meta name="theme-color" content="#010103">
+  <!-- Set before anything is drawn, so nothing meant for the live version
+       flashes up first (the main script loads later). -->
+  <script>document.documentElement.classList.add('js');</script>
   <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
@@ -29,7 +32,7 @@
       <p class="boot__signup">
         <button type="button" class="button button--geo" aria-expanded="false" aria-controls="signup">
           <span class="button__label">Join mailing list</span>
-          <canvas aria-hidden="true" data-scene="/geo-sc/scenes/mail-button/"></canvas>
+          <canvas aria-hidden="true" data-scene="/scenes/join-button/"></canvas>
         </button>
       </p>
       <!-- Mailing list (MailerLite form 203775095803479416). Without the script it

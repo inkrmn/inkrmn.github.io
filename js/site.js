@@ -17,11 +17,16 @@ const bootReady = () => {
   const player = mountJoinButton(); // loads while the logo plays alone
   setTimeout(() => revealJoinButton(player), REVEAL_MS);
 };
-setTimeout(bootReady, 6000); // never leave the button hidden for long
+// The still stays hidden unless the live logo can't run, or hasn't drawn
+// after a few seconds.
+const showStill = () => {
+  if (!hero.querySelector('canvas.is-ready')) hero.classList.add('show-still');
+};
+setTimeout(() => { showStill(); bootReady(); }, 6000); // never leave the page empty for long
 
 mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
-  .then(bootReady)
-  .catch((err) => { console.warn(err); bootReady(); });
+  .then((player) => { if (!player) showStill(); bootReady(); })
+  .catch((err) => { console.warn(err); showStill(); bootReady(); });
 
 // The Join mailing list button in particles. It loads empty while the logo
 // plays, then the particles fly in and form it, like pressing Space in GEO_SC.
