@@ -13,7 +13,8 @@ const CLOUD_FORM_SECONDS = 1.8; // how long the particles take to fade in
 const CLOUD_SCATTER = 1; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 1500; // how long the cloud hangs, from when it starts fading in, before settling
 const CLOUD_SECONDS = 2; // how long settling takes
-const CROSSFADE_SECONDS = 3; // the last part of settling: real text in, particles out
+const CROSSFADE_AT = 95; // how far settled (%) the cloud is when the real text starts fading in
+const CROSSFADE_SECONDS = 0.75; // how long the cross-fade takes: real text in, particles out (they keep settling meanwhile)
 const QUICK_FADE_SECONDS = 0.4; // cutting the cloud short (someone starts typing, or the window changes size)
 
 // ---- The cloud's look
@@ -317,15 +318,16 @@ function playCloud(player) {
   setTimeout(() => {
     if (finished) return;
     const start = performance.now();
+    // Keeps settling through the cross-fade, so the particles land on the
+    // text as it appears rather than stopping where they were.
     const step = (now) => {
-      if (finished) return;
       const t = Math.min(1, (now - start) / (CLOUD_SECONDS * 1000));
       const ease = t * t * (3 - 2 * t); // slow at the start and end, like drifting together
       player.settings.scatter = CLOUD_SCATTER * (1 - ease);
+      if (ease * 100 >= CROSSFADE_AT) finish(CROSSFADE_SECONDS); // does nothing once it's started
       if (t < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
-    setTimeout(() => finish(CROSSFADE_SECONDS), (CLOUD_SECONDS - CROSSFADE_SECONDS) * 1000);
   }, CLOUD_HOLD_MS);
 }
 
