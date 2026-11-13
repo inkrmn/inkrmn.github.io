@@ -6,14 +6,14 @@ document.documentElement.classList.add('js');
 // ---- Timings (milliseconds unless the name says otherwise)
 // The page: the backdrop draws, then the page's text arrives as a particle
 // cloud that settles into place, and the real text fades in over it.
-const BACKDROP_WAIT_MS = 4000; // the backdrop hasn't drawn by now: carry on without it
-const CLOUD_WAIT_MS = 4000; // the cloud isn't ready this long after the backdrop: plain fade instead
+const BACKDROP_WAIT_MS = 3000; // the backdrop hasn't drawn by now: carry on without it
+const CLOUD_WAIT_MS = 3000; // the cloud isn't ready this long after the backdrop: plain fade instead
 const CLOUD_DELAY_MS = 600; // after the backdrop draws, before the cloud fades in (the backdrop's own fade)
 const CLOUD_FORM_SECONDS = 1.8; // how long the particles take to fade in
-const CLOUD_SCATTER = 0.6; // how spread out the cloud starts (0 = no cloud)
+const CLOUD_SCATTER = 1; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 1500; // how long the cloud hangs, from when it starts fading in, before settling
-const CLOUD_SECONDS = 4; // how long settling takes
-const CROSSFADE_SECONDS = 1.5; // the last part of settling: real text in, particles out
+const CLOUD_SECONDS = 2; // how long settling takes
+const CROSSFADE_SECONDS = 3; // the last part of settling: real text in, particles out
 const QUICK_FADE_SECONDS = 0.4; // cutting the cloud short (someone starts typing, or the window changes size)
 
 // ---- The cloud's look

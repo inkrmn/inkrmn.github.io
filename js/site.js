@@ -45,9 +45,9 @@ if (joinCanvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) joinB
 
 // The cloud: how spread out it starts (0 = no cloud), how long it hangs
 // before settling, and how long settling takes.
-const CLOUD_SCATTER = 0.6;
-const CLOUD_HOLD_MS = 1500;
-const CLOUD_SECONDS = 4;
+const CLOUD_SCATTER = 0.8;
+const CLOUD_HOLD_MS = 1000;
+const CLOUD_SECONDS = 2.5;
 
 const LOGO_CRT_LINES = 910; // the homepage scene's line count
 const STREAMERS_MAX = 0.4; // GEO_SC's top Streamers value
