@@ -227,8 +227,32 @@ main { position: relative; }
   -webkit-mask-image: var(--scene-lines);
   mask-image: var(--scene-lines);
 }
-.js .join { opacity: 0; transition: opacity 0.8s ease; }
+.js .join { opacity: 0; transition: opacity var(--join-fade, 0.8s) ease; }
 .js .join.is-ready { opacity: 1; }
+/* The page's text in GEO_SC particles, arriving as a cloud that settles onto
+   the real text (js/join.js). The script places and sizes it over the text,
+   with room round it; the image it draws is the same shape, and the scene's
+   scale makes GEO_SC fill the canvas with it, so particles land on the
+   letters. Screen blend and soft edges, as for the homepage button. */
+.join-cloud {
+  position: fixed;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--cloud-fade, 0.6s) ease;
+  mix-blend-mode: screen;
+  /* Soft edges over the room round the text only (the script sets the
+     room), so the text itself is never faded. */
+  --mask-x: linear-gradient(to right, transparent, #000 var(--cloud-room-x, 15%),
+                            #000 calc(100% - var(--cloud-room-x, 15%)), transparent);
+  --mask-y: linear-gradient(to bottom, transparent, #000 var(--cloud-room-y, 20%),
+                            #000 calc(100% - var(--cloud-room-y, 20%)), transparent);
+  -webkit-mask-image: var(--mask-x), var(--mask-y);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--mask-x), var(--mask-y);
+  mask-composite: intersect;
+}
+.join-cloud.is-on { opacity: 1; }
 .join__title {
   margin: 0 0 0.4rem;
   font: 900 clamp(1.4rem, 6vw, 2rem)/1.1 var(--font-main);
@@ -326,4 +350,5 @@ main { position: relative; }
   .geo-hero canvas, .js .geo-hero img, .button--geo canvas { transition: none; }
   .js .boot__after { transition: none; opacity: 1; visibility: visible; }
   .js .join, .signup__submit, .join__back a { transition: none; }
+  .join-cloud { display: none; }
 }
