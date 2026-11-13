@@ -12,7 +12,7 @@ const CLOUD_DELAY_MS = 200; // after the backdrop draws, before the cloud fades 
 const CLOUD_FORM_SECONDS = 0.4; // how long the particles take to fade in
 const CLOUD_SCATTER = 2; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 0; // how long the cloud hangs, from when it starts fading in, before settling
-const CLOUD_SECONDS = 2; // how long settling takes
+const CLOUD_SECONDS = 0.8; // how long settling takes
 const CROSSFADE_AT = 95; // how far settled (%) the cloud is when the real text starts fading in
 const CROSSFADE_SECONDS = 0.75; // how long the cross-fade takes: real text in, particles out (they keep settling meanwhile)
 const QUICK_FADE_SECONDS = 0.4; // cutting the cloud short (someone starts typing, or the window changes size)
