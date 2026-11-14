@@ -149,6 +149,12 @@ main > .screen { grid-area: 1 / 1; }
   transition: opacity 0.8s ease, visibility 0s;
 }
 .js .screen--boot.is-ready .boot__after { opacity: 1; visibility: visible; }
+/* With the particle button, the wrapper doesn't fade: the button stays
+   hidden until its particles are drawing, then its canvas fades itself in.
+   A part-faded wrapper would draw the button in a layer of its own, where
+   the canvas's screen blend has nothing to blend with, so its black
+   background would show as a dark box. (js/site.js adds the class.) */
+.js .screen--boot.has-geo-button .boot__after { opacity: 1; visibility: visible; transition: none; }
 .boot__signup { margin: 0 0 0.75rem; }
 /* While the join block is up, the button goes (it bursts into a cloud as
    it fades: js/site.js). The particle version fades its canvas rather than
@@ -179,11 +185,13 @@ main > .screen { grid-area: 1 / 1; }
 /* Easy to change:
    --join-width        how wide the button is (laptops and bigger)
    --join-width-phone  how wide it is on phones (screens under 40rem)
-   --join-opacity      1 = solid; lower lets more of the logo's scene through */
+   --join-opacity      1 = solid; lower lets more of the logo's scene through
+   --join-opacity-hover  the same, on hover or keyboard focus */
 :root {
   --join-width: min(28rem, 88vw);
   --join-width-phone: 53vw;
   --join-opacity: 0.8;
+  --join-opacity-hover: 1;
 }
 .button--geo {
   position: relative;
@@ -207,12 +215,19 @@ main > .screen { grid-area: 1 / 1; }
   opacity: 0;
   transition: opacity var(--away-fade, 0.6s) ease;
   mix-blend-mode: screen;   /* the scene's dark background drops away */
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
-                      linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  --mask-x: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+  --mask-y: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  -webkit-mask-image: var(--mask-x), var(--mask-y);
   -webkit-mask-composite: source-in;
-  mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
-              linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  mask-image: var(--mask-x), var(--mask-y);
   mask-composite: intersect;
+}
+/* Uncovered behind the logo's scan as it sweeps across (SCAN_REVEAL in
+   js/site.js, which moves --scan-x along with it). */
+.button--geo canvas.is-scanning {
+  --mask-scan: linear-gradient(to right, #000 calc(var(--scan-x, 0px) - var(--scan-edge, 80px)), transparent var(--scan-x, 0px));
+  -webkit-mask-image: var(--mask-x), var(--mask-y), var(--mask-scan);
+  mask-image: var(--mask-x), var(--mask-y), var(--mask-scan);
 }
 /* While the particle version loads, the button stays hidden rather than
    showing the plain one first. */
@@ -220,6 +235,8 @@ main > .screen { grid-area: 1 / 1; }
 .button--geo.is-geo { border-color: transparent; background: none; }
 .button--geo.is-geo .button__label { opacity: 0; }
 .button--geo.is-geo canvas { opacity: var(--join-opacity); }
+.button--geo.is-geo:hover canvas,
+.button--geo.is-geo:focus-visible:not(.is-quiet-focus) canvas { opacity: var(--join-opacity-hover); }
 @media (max-width: 40rem) {
   .button--geo { width: var(--join-width-phone); }
 }

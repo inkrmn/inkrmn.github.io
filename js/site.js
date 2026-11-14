@@ -1,6 +1,9 @@
 // INKRMN site script
 import { mount } from '/geo-sc/player.js';
 import { easeScatter, burst } from './scatter.js';
+// GEO_SC's own look and camera code, to work out where the logo's scan is.
+import { lookParams, tempo, TAU } from '/geo-sc/look.js';
+import { Renderer } from '/geo-sc/renderer.js';
 
 // ---- Timings for the Join mailing list button (milliseconds unless the
 // name says otherwise). The logo plays, then the button's particles arrive
@@ -8,15 +11,18 @@ import { easeScatter, burst } from './scatter.js';
 // join page: the button stays as particles.)
 const LOGO_WAIT_MS = 6000; // the logo hasn't drawn by now: show the still and carry on
 const BUTTON_WAIT_MS = 4000; // the button's particles aren't ready this long after the logo: plain button instead
-const CLOUD_DELAY_MS = 1500; // after the logo shows, before the button's cloud fades in
-const CLOUD_FORM_SECONDS = 1; // how long the particles take to fade in
-const CLOUD_SCATTER = 2; // how spread out the cloud starts (0 = no cloud)
+const CLOUD_DELAY_MS = 1700; // after the logo shows, before the button's cloud fades in
+const CLOUD_FORM_SECONDS = 4; // how long the particles take to fade in
+const CLOUD_SCATTER = 0.2; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 0; // how long the cloud hangs, from when it starts fading in, before settling
-const CLOUD_SECONDS = 1.5; // how long settling takes
-// Particles thrown out towards the camera are drawn bigger, so a spread-out
-// cloud starts very bright. This shrinks them while they're spread out,
-// growing back to full size as they settle (1 = no change, 0.3 = a third).
-const CLOUD_SIZE_SPREAD = 0.35; // particle size at full spread, as a share of the settled size
+const CLOUD_SECONDS = 0.1; // how long settling takes
+// Kicked up by the scan: the logo's scan (the red/orange band that sweeps
+// left to right across it) uncovers the button as it passes over, as if it
+// kicks the button's particles up. The button waits for the scan's next
+// pass after CLOUD_DELAY_MS: up to about 6 seconds more.
+const SCAN_REVEAL = false; // false: the button just appears after CLOUD_DELAY_MS, as before
+const SCAN_EDGE_PX = 300; // how soft the uncovering edge is
+const SCAN_LEAD = 0; // the edge's place against the scan's band, as a share of the logo's width (+ = ahead of it)
 
 // ---- Going to the join block and back, without loading a new page. The
 // scene keeps running behind; the join block's own timings are in js/join.js.
@@ -122,13 +128,31 @@ function playInStep() {
 //   shows round them;
 // - its CRT scanlines are spaced to match the logo scene's, which counts
 //   its lines over the whole screen height rather than the button's;
-// - no scan. Instead the streamers go to full on hover.
+// - no scan. Instead it has streamers (see the button's look, below).
 const joinButton = document.querySelector('.button--geo');
 const joinCanvas = joinButton && joinButton.querySelector('canvas');
-if (joinCanvas && !reducedMotion) joinButton.classList.add('is-loading');
+if (joinCanvas && !reducedMotion) {
+  joinButton.classList.add('is-loading');
+  // Its wrapper doesn't fade in (css/site.css): the canvas fades itself.
+  boot.classList.add('has-geo-button');
+}
 
 const LOGO_CRT_LINES = 910; // the homepage scene's line count
-const STREAMERS_MAX = 0.4; // GEO_SC's top Streamers value
+
+// ---- The Join button's look: streamers and hover
+// Streamers are particles that peel off the letters, drift along the wind
+// (the scene's "wind": 180 = to the left) and fade as they go.
+const STREAMERS = 0.3; // how many peel off while resting (0 = none, 1 = every particle)
+const STREAMERS_HOVER = 0.3; // how many on hover or keyboard focus
+// How fast they drift (GEO_SC's Speed; 0 = frozen in place, which only dims
+// the button). It stays the same on hover: GEO_SC works out where each
+// streamer is from the clock times this, so easing it would scramble them.
+const STREAMER_SPEED = 1;
+const HOVER_COLOUR = '#f95f47'; // the particles on hover (resting: the scene's ink, white). Brightest = white
+const HOVER_SECONDS = 0.35; // how long the change takes, in and out
+// The button's opacity, resting and on hover: --join-opacity and
+// --join-opacity-hover in css/site.css.
+
 const BUTTON_LOOK = {
   bg: 'plain',
   bg_plain_c1: '#000000',
@@ -136,7 +160,9 @@ const BUTTON_LOOK = {
   fx_dither_c1: '#000000',
   fx_ascii_c2: '#000000',
   scan: false,
-  size: 5
+  size: 2.4,
+  stream: STREAMERS,
+  speed: STREAMER_SPEED,
 };
 const crtLines = () =>
   Math.max(60, Math.round((LOGO_CRT_LINES * joinCanvas.clientHeight) / hero.clientHeight));
@@ -156,13 +182,9 @@ async function mountJoinButton() {
       form: true,
       formSeconds: CLOUD_FORM_SECONDS,
       mobileScale: 1,
-      minDensity: 100,
+      minDensity: 900,
     });
-    if (player) {
-      player.settings.scatter = CLOUD_SCATTER; // set live: scene settings only keep GEO_SC's own
-      buttonSize = player.settings.size;
-      fitButtonSize(player);
-    }
+    if (player) player.settings.scatter = CLOUD_SCATTER; // set live: scene settings only keep GEO_SC's own
     player?.pause(); // nothing to draw until it forms
     return player;
   } catch (err) {
@@ -171,12 +193,68 @@ async function mountJoinButton() {
   }
 }
 
-// The button's particle size follows its scatter: CLOUD_SIZE_SPREAD of the
-// scene's size when spread out by CLOUD_SCATTER (or more), full when settled.
-let buttonSize = 1;
-function fitButtonSize(player) {
-  const spread = Math.min(1, (+player.settings.scatter || 0) / (CLOUD_SCATTER || 1));
-  player.settings.size = buttonSize * (1 - (1 - CLOUD_SIZE_SPREAD) * spread);
+// Where the logo's scan band is on screen, worked out the way GEO_SC draws
+// it (its own look and camera code), from the logo's clock kept in step
+// above (logoClock). The band runs across the logo from -0.3 to 1.3 (0 =
+// the logo's left edge, 1 = its right), then starts again; the logo sits
+// slightly turned and zooms a little on the beat, which this follows.
+function scanOnScreen() {
+  const logo = players.logo;
+  const S = logo.settings;
+  const start = logo.scene.clock || { time: 0, scan: 0, spin: 0 };
+  const cam = logo.scene.camera || {};
+  const time = logoClock.time;
+  const run = time - start.time;
+  const f = lookParams(S, {
+    time,
+    scan: start.scan + run * S.scanSpeed * 0.25,
+    spin: start.spin + (run / tempo(S).cycle) * TAU * S.spin,
+    cam: { yaw: cam.ty ?? 0, pitch: cam.tp ?? 0, zoom: cam.tz ?? 1 },
+    mosh: { lastKeyIdx: -1 }, // a scratch copy: the logo's own is left alone
+    scaleMul: logo.stats.scaleMul,
+  });
+  const W = hero.clientWidth;
+  const H = hero.clientHeight;
+  const [halfWidth] = Renderer.prototype.plane(logo.scene.source.aspect, W / H, f.scale);
+  const { view, proj } = Renderer.prototype.matrices.call({ width: W, height: H }, f);
+  // The band's point on the logo's middle row, through the camera to the screen.
+  const x = (f.scanPos + SCAN_LEAD - 0.5) * 2 * halfWidth;
+  const v = [0, 1, 2, 3].map((r) => view[r] * x + view[12 + r]);
+  const clip = (r) => proj[r] * v[0] + proj[4 + r] * v[1] + proj[8 + r] * v[2] + proj[12 + r] * v[3];
+  return ((clip(0) / clip(3) + 1) / 2) * W;
+}
+
+// Waits for the scan to reach the button's canvas, then resolves with a
+// function that starts uncovering it behind the scan. Resolves null (no
+// waiting, nothing to uncover) when there's no live logo or it has no scan.
+function scanReachesButton() {
+  if (!players.logo?.settings.scan || !logoClock.on) return Promise.resolve(null);
+  const left = () => joinCanvas.getBoundingClientRect().left - SCAN_EDGE_PX;
+  return new Promise((resolve) => {
+    let before = scanOnScreen();
+    const watch = () => {
+      if (view !== 'home') return resolve(null); // gone to the join block meanwhile
+      const now = scanOnScreen();
+      // Crossed the canvas's left edge this frame (moving right, not wrapping round).
+      if (before < left() && now >= left() && now > before) return resolve(uncover);
+      before = now;
+      requestAnimationFrame(watch);
+    };
+    requestAnimationFrame(watch);
+  });
+  function uncover() {
+    joinCanvas.style.setProperty('--scan-edge', `${SCAN_EDGE_PX}px`);
+    joinCanvas.classList.add('is-scanning');
+    const step = () => {
+      const r = joinCanvas.getBoundingClientRect();
+      const x = scanOnScreen() - r.left;
+      joinCanvas.style.setProperty('--scan-x', `${x}px`);
+      // All uncovered, or the scan wrapped round: the mask goes.
+      if (x - SCAN_EDGE_PX > r.width || x < -SCAN_EDGE_PX) return joinCanvas.classList.remove('is-scanning');
+      requestAnimationFrame(step);
+    };
+    step();
+  }
 }
 
 let reaim = () => {};
@@ -190,6 +268,7 @@ function revealJoinButton(loading) {
     if (!player) { plain(); mountBackdrop(); return; }
     clearTimeout(fallback);
     if (CLOUD_DELAY_MS) await new Promise((r) => setTimeout(r, CLOUD_DELAY_MS));
+    const sweep = SCAN_REVEAL && view === 'home' ? await scanReachesButton() : null;
     players.button = player;
     if (view === 'home') player.resume();
     player.form(); // the particles fade in, already scattered as a cloud
@@ -199,20 +278,17 @@ function revealJoinButton(loading) {
     await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
     joinButton.classList.remove('is-loading');
     joinButton.classList.add('is-geo');
+    sweep?.(); // uncovered behind the scan as it carries on across
     // Slow at the start and end, like the particles drifting together.
-    setTimeout(() => {
-      if (view === 'home') easeScatter(player, 0, CLOUD_SECONDS, { onStep: () => fitButtonSize(player) });
-    }, CLOUD_HOLD_MS);
+    setTimeout(() => { if (view === 'home') easeScatter(player, 0, CLOUD_SECONDS); }, CLOUD_HOLD_MS);
     addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
     reaim = streamersOnHover(player);
     mountBackdrop();
   });
 }
 
-// On hover or keyboard focus the button eases to the scan's red/orange
-// (the preset's accent colour) and the streamers go to full; both ease back
-// after.
-const HOVER_SECONDS = 0.35; // how long the change takes
+// On hover or keyboard focus the button eases to HOVER_COLOUR and more of
+// its particles stream off (STREAMERS_HOVER); both ease back after.
 
 function hexToRgb(hex) {
   const n = parseInt(hex.slice(1), 16);
@@ -223,7 +299,7 @@ const rgbToHex = (rgb) => '#' + rgb.map((v) => Math.round(v).toString(16).padSta
 function streamersOnHover(player) {
   const s = player.settings;
   const rest = { stream: s.stream, ink: hexToRgb(s.ink) };
-  const hover = { stream: STREAMERS_MAX, ink: hexToRgb(s.accent) };
+  const hover = { stream: STREAMERS_HOVER, ink: hexToRgb(HOVER_COLOUR) };
   let k = 0; // 0 = resting, 1 = full hover
   let target = 0;
   let raf = 0;
@@ -319,7 +395,7 @@ function showJoin() {
   boot.inert = true;
   joinSection.hidden = false;
   easeScatter(players.logo, LOGO_BURST, seconds, { ease: burst });
-  easeScatter(players.button, BUTTON_BURST, seconds, { ease: burst, onStep: () => fitButtonSize(players.button) });
+  easeScatter(players.button, BUTTON_BURST, seconds, { ease: burst });
   const gone = wait(seconds * 1000);
   join.arrive(); // the cloud starts forming at once, as the logo bursts
   join.heading.focus({ preventScroll: true }); // after arrive(), which makes the block focusable again
@@ -353,7 +429,7 @@ async function showHome() {
   joinButton.focus({ preventScroll: true });
   reaim();
   easeScatter(players.logo, 0, seconds);
-  easeScatter(players.button, 0, seconds, { onStep: () => fitButtonSize(players.button) });
+  easeScatter(players.button, 0, seconds);
   const [gone] = await Promise.all([left, wait(seconds * 1000)]);
   if (me !== trip) return;
   players.backdrop?.pause(); // out of sight under the logo: stop drawing it
