@@ -5,11 +5,11 @@ import { mount } from '/geo-sc/player.js';
 import { easeScatter, burst } from './scatter.js';
 
 // ---- Timings (milliseconds unless the name says otherwise)
-// Arriving: the backdrop draws, then the page's text arrives as a particle
-// cloud that settles into place, and the real text fades in over it.
-export const BACKDROP_WAIT_MS = 3000; // the backdrop hasn't drawn by now: carry on without it
-const CLOUD_WAIT_MS = 3000; // the cloud isn't ready this long after the backdrop: plain fade instead
-const CLOUD_DELAY_MS = 0; // after the backdrop draws, before the cloud fades in (the backdrop's own fade)
+// Arriving: the page's text arrives straight away as a particle cloud that
+// settles into place, and the real text fades in over it. (It doesn't wait
+// for the backdrop, or on the homepage for the logo to finish going.)
+const CLOUD_WAIT_MS = 3000; // the cloud isn't ready this long after arriving: plain fade instead
+const CLOUD_DELAY_MS = 0; // after arriving, before the cloud fades in
 const CLOUD_FORM_SECONDS = 2; // how long the particles take to fade in
 const CLOUD_SCATTER = 2; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 0; // how long the cloud hangs, from when it starts fading in, before settling
@@ -324,7 +324,23 @@ export function setupJoin(section, { backdrop, keepCloud = false }) {
     return true;
   }
 
-  return { arrive, leave, title };
+  // Makes the particles ahead of time (the homepage does this while it's
+  // idle), so arrive() can start forming them at once. The block has to be
+  // laid out to be measured, so it's shown, unseen and untouchable, while
+  // they're drawn, then hidden again.
+  async function prepare() {
+    if (reducedMotion || !canvas.isConnected || !section.hidden) return;
+    section.style.visibility = 'hidden';
+    section.hidden = false;
+    const ready = particles(false);
+    // Drawing the text image is the part that needs the layout; the rest
+    // (starting the particles) can carry on once it's hidden again.
+    await Promise.race([ready, wait(CLOUD_WAIT_MS)]);
+    if (turn === 0 || section.inert) section.hidden = true; // not arrived meanwhile
+    section.style.visibility = '';
+  }
+
+  return { arrive, leave, prepare, title };
 }
 
 // The area the cloud draws in: the text plus room round it, inside the window.

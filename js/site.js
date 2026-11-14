@@ -169,7 +169,7 @@ function revealJoinButton(loading) {
   loading.then(async (player) => {
     // The join block's font and particles get ready in the background now,
     // so it can come in straight away when the button is pressed.
-    joinParts.then((parts) => parts?.warmUp());
+    joinParts.then((parts) => parts?.warmUp().then(() => view === 'home' && parts.prepare()));
     if (!player) { plain(); mountBackdrop(); return; }
     clearTimeout(fallback);
     joinButton.classList.remove('is-loading');
@@ -215,7 +215,8 @@ function streamersOnHover(player) {
     raf = requestAnimationFrame(step);
   };
   const aim = () => {
-    target = joinButton.matches(':hover, :focus-visible') ? 1 : 0;
+    const focused = joinButton.matches(':focus-visible') && !joinButton.classList.contains('is-quiet-focus');
+    target = joinButton.matches(':hover') || focused ? 1 : 0;
     if (!raf) raf = requestAnimationFrame(step);
   };
   ['pointerenter', 'pointerleave', 'focus', 'blur'].forEach((type) =>
@@ -251,6 +252,12 @@ joinParts.then((parts) => { join = parts; });
 
 // A plain click (or Enter): anything with a modifier key, or another mouse
 // button, is left to open the link the usual way.
+// Whether the last thing someone did was on the keyboard, so focus moved
+// for them shows its ring only when it'd help.
+let keyboardUser = false;
+addEventListener('keydown', () => { keyboardUser = true; }, true);
+addEventListener('pointerdown', () => { keyboardUser = false; }, true);
+
 const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
 const isJoinPath = (path) => /^\/join(\/(index\.html)?)?$/.test(path);
 
@@ -291,7 +298,7 @@ function showJoin() {
   easeScatter(players.logo, LOGO_BURST, seconds, { ease: burst });
   easeScatter(players.button, BUTTON_BURST, seconds, { ease: burst });
   const gone = wait(seconds * 1000);
-  join.arrive(gone);
+  join.arrive(); // the cloud starts forming at once, as the logo bursts
   join.heading.focus({ preventScroll: true }); // after arrive(), which makes the block focusable again
   gone.then(() => {
     if (me !== trip) return;
@@ -316,6 +323,10 @@ async function showHome() {
   hero.classList.remove('is-away');
   boot.classList.remove('is-away');
   boot.inert = false;
+  // Focus goes back to the button. Its focus ring (and hover look) only
+  // shows for someone using the keyboard, not after a tap or click.
+  joinButton.classList.toggle('is-quiet-focus', !keyboardUser);
+  joinButton.addEventListener('blur', () => joinButton.classList.remove('is-quiet-focus'), { once: true });
   joinButton.focus({ preventScroll: true });
   reaim();
   easeScatter(players.logo, 0, seconds);
