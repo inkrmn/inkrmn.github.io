@@ -1,0 +1,11 @@
+// Cloudflare settings, used only for branch previews.
+// The live site at inkr.mn is still served by GitHub Pages from main.
+// Cloudflare serves the repo as plain files: no build step, no server code.
+{
+  "name": "inkrmn", // must match the project name in Cloudflare
+  "compatibility_date": "2026-11-11",
+  "assets": {
+    "directory": "."
+  },
+  "previews": {} // turns on a preview link for each branch
+}

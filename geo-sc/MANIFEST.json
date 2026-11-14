@@ -1,7 +1,7 @@
 {
   "note": "Written by GEO_SC (npm run web). Re-run that to update this folder; edits here are overwritten.",
   "created": "2026-11-09T22:13:15.896Z",
-  "geoScCommit": "e6b4062",
+  "geoScCommit": "e6b4062 + player.js from GEO_SC branch player-form-in",
   "engine": "14f6d83831b46d29823a91a16ac52f5c1e8274a3e36e16fb34190611e4d33349",
   "scenes": [
     {

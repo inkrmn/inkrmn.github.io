@@ -4,26 +4,76 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>INKRMN</title>
+  <meta name="description" content="INKRMN. Unpredictable, texture-heavy pop for fans of genre-blurring sound design.">
   <meta name="theme-color" content="#010103">
+  <!-- Set before anything is drawn, so nothing meant for the live version
+       flashes up first (the main script loads later). -->
+  <script>document.documentElement.classList.add('js');</script>
   <link rel="stylesheet" href="/css/site.css">
 </head>
 <body>
-<main>
-  <h1 class="visually-hidden">INKRMN</h1>
 
-  <section class="geo-hero">
-    <picture>
-      <source media="(orientation: portrait)" srcset="/geo-sc/scenes/ink-mn-homepage/still-tall.jpg" width="1080" height="1920">
-      <img src="/geo-sc/scenes/ink-mn-homepage/still-wide.jpg" alt="INKRMN" width="1920" height="1080">
-    </picture>
-    <canvas aria-hidden="true"></canvas>
+
+<!-- The same GEO_SC scene with no logo, under the logo: it shows while the
+     join block is up (js/site.js) -->
+<div class="geo-backdrop"><canvas aria-hidden="true"></canvas></div>
+
+<!-- The GEO_SC logo, fixed behind the page -->
+<div class="geo-hero">
+  <picture>
+    <source media="(orientation: portrait)" srcset="/geo-sc/scenes/ink-mn-homepage/still-tall.jpg" width="1080" height="1920">
+    <img src="/geo-sc/scenes/ink-mn-homepage/still-wide.jpg" alt="" width="1920" height="1080">
+  </picture>
+  <canvas aria-hidden="true"></canvas>
+</div>
+
+
+<main>
+  <section class="screen screen--boot" id="boot">
+    <div class="screen__inner">
+      <h1 class="visually-hidden">INKRMN</h1>
+      <div class="boot__after">
+      <p class="boot__signup">
+        <a class="button button--geo" href="/join/">
+          <span class="button__label">Join mailing list</span>
+          <canvas aria-hidden="true" data-scene="/scenes/join-button/"></canvas>
+        </a>
+      </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- The join block, shown in place when the Join button is tapped, without
+       loading a new page (js/site.js). It's duplicated from join/index.html,
+       which shows it on its own (opened directly, or without the script).
+       Change both copies together. Here the heading is an h2, under the
+       page's h1. -->
+  <section class="screen screen--join" hidden>
+    <!-- The text below drawn in particles, as a cloud that settles onto it (js/join.js) -->
+    <canvas class="join-cloud" aria-hidden="true"></canvas>
+    <div class="join">
+      <h2 class="join__title" tabindex="-1">Join mailing list</h2>
+      <p class="join__lede">Get new music and dates first.</p>
+
+      <!-- MailerLite form 203775095803479416. Without the script it still works:
+           it posts straight to MailerLite in a new tab. -->
+      <form class="signup" action="https://assets.mailerlite.com/jsonp/2785189/forms/203775095803479416/subscribe" method="post" target="_blank">
+        <label class="visually-hidden" for="signup-email">Email address</label>
+        <div class="signup__row">
+          <input class="signup__email" id="signup-email" type="email" name="fields[email]" placeholder="Email" autocomplete="email" required>
+          <button class="signup__submit" type="submit">Join</button>
+        </div>
+        <input type="hidden" name="ml-submit" value="1">
+        <input type="hidden" name="anticsrf" value="true">
+        <p class="signup__small">You can unsubscribe at any time.</p>
+        <p class="signup__status" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="join__back"><a href="/">Back</a></p>
+    </div>
   </section>
 </main>
 
-<script type="module">
-  import { mount } from '/geo-sc/player.js';
-  mount(document.querySelector('.geo-hero canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
-    .catch((err) => console.warn(err)); // the still stays if anything goes wrong
-</script>
+<script type="module" src="/js/site.js"></script>
 </body>
 </html>

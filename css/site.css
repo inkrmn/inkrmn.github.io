@@ -1,12 +1,47 @@
 /* INKRMN site styles */
 
+/* Archivo (open source, SIL Open Font License: fonts/Archivo-OFL.txt).
+   One file inside the site covers weights 400 to 900, Latin characters only.
+   Arial shows until it loads, and stays if it can't. */
+@font-face {
+  font-family: "Archivo";
+  src: url("/fonts/archivo-latin.woff") format("woff");
+  font-weight: 400 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Midnight Magic palette */
+:root {
+  --edge: #010103;       /* the GEO_SC render's edge colour: page and browser bars */
+  --midnight: #0a0f2e;
+  --purple: #1e0f41;
+  --red: #b3202e;        /* main colour, for fills only (too dark for text) */
+  --red-deep: #7a1226;
+  --green: #5dfc9b;      /* phosphor green: screen text, links, highlights */
+  --paper: #ebe7d8;      /* body text */
+
+  --font-main: "Archivo", Arial, Helvetica, sans-serif;
+  --font-screen: "Courier New", Courier, monospace; /* stand-in for a terminal font */
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html, body {
   margin: 0;
-  background: #010103; /* the edge colour of the GEO_SC render */
-  color: #fff;
+  /* One fixed screen for now: nothing scrolls, so nothing shifts (on phones,
+     scrolling also slides the browser's toolbars, which moved the button). */
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  background: var(--edge);
+  color: var(--paper);
+  font-family: var(--font-main);
+  line-height: 1.4;
 }
+
+a { color: var(--green); }
+a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 
 .visually-hidden {
   position: absolute;
@@ -20,13 +55,20 @@ html, body {
   border: 0;
 }
 
-/* GEO_SC hero (from geo-sc/README.md) */
+/* GEO_SC (from geo-sc/README.md): two fixed layers behind the page.
+   .geo-backdrop is the scene with no logo; .geo-hero is the logo, on top.
+   On the homepage the logo fades away while the join block is up, showing
+   the backdrop (js/site.js); /join/ has the backdrop only. */
+.geo-backdrop,
 .geo-hero {
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
   overflow: hidden;
   height: 100vh;         /* fallback for browsers without svh */
   height: 100svh;
-  background: #010103;   /* the edge colour of the GEO_SC render */
+  background: var(--edge);
 }
 .geo-hero img {          /* the still, full width and centred, to match the canvas */
   position: absolute;
@@ -37,6 +79,9 @@ html, body {
   transform: translateY(-50%);
   display: block;
 }
+.geo-hero { transition: opacity var(--away-fade, 0.8s) ease; }
+.geo-hero.is-away { opacity: 0; }
+.geo-backdrop canvas,
 .geo-hero canvas {       /* size with CSS only; the player sets width/height attributes */
   position: absolute;
   inset: 0;
@@ -46,8 +91,305 @@ html, body {
   opacity: 0;
   transition: opacity 0.6s ease;
 }
+.geo-backdrop canvas.is-ready,
 .geo-hero canvas.is-ready { opacity: 1; }
+/* With the script, the still waits: the live logo fades in over black, and
+   the still only shows if GEO_SC can't run or is slow (js/site.js). */
+.js .geo-hero img { opacity: 0; transition: opacity 0.6s ease; }
+.js .geo-hero.show-still img { opacity: 1; }
+
+/* The one screen */
+/* Drawn after (so above) the fixed scene, without its own layer: the
+   button's particles have to blend straight onto the scene behind. */
+main { position: relative; }
+/* The homepage's two screens (boot, and the join block) take the same spot,
+   one at a time. */
+main { display: grid; }
+main > .screen { grid-area: 1 / 1; }
+.screen[hidden] { display: none; }
+
+.screen {
+  box-sizing: border-box;
+  height: 100vh;
+  height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1.25rem 3rem;
+  /* no background: the GEO_SC scene shows through untouched */
+}
+.screen__inner { width: 100%; max-width: 62rem; }
+
+/* Boot screen. Clear, so the logo shows; taps pass through to it.
+   The button sits a little below the logo: the logo is centred and its
+   height follows the screen width, so the gap does too. */
+.screen--boot {
+  align-items: flex-start;
+  padding-top: min(calc(50vh + 14vw), 74vh);
+  padding-top: min(calc(50svh + 14vw), 74svh);
+  pointer-events: none;
+  text-align: center;
+}
+/* Phones: a little lower, with more space under the logo. */
+@media (max-width: 40rem) {
+  .screen--boot {
+    padding-top: min(calc(50vh + 26vw), 70vh);
+    padding-top: min(calc(50svh + 26vw), 70svh);
+  }
+}
+.screen--boot a { pointer-events: auto; }
+/* The logo plays alone for a few seconds, then the button appears. */
+/* Timed from when the logo first shows (js/site.js adds .is-ready to the
+   boot screen); without the script it's simply there. A transition rather
+   than an animation: once it ends nothing is left holding the button in a
+   layer of its own, so its particles blend onto the scene. */
+.js .boot__after {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.8s ease, visibility 0s;
+}
+.js .screen--boot.is-ready .boot__after { opacity: 1; visibility: visible; }
+/* With the particle button, the wrapper doesn't fade: the button stays
+   hidden until its particles are drawing, then its canvas fades itself in.
+   A part-faded wrapper would draw the button in a layer of its own, where
+   the canvas's screen blend has nothing to blend with, so its black
+   background would show as a dark box. (js/site.js adds the class.) */
+.js .screen--boot.has-geo-button .boot__after { opacity: 1; visibility: visible; transition: none; }
+.boot__signup { margin: 0 0 0.75rem; }
+/* While the join block is up, the button goes (it bursts into a cloud as
+   it fades: js/site.js). The particle version fades its canvas rather than
+   the button, so its blend with the scene holds all the way out. */
+.button--geo { transition: opacity var(--away-fade, 0.8s) ease; }
+.screen--boot.is-away .button--geo:not(.is-geo),
+.screen--boot.is-away .button--geo.is-geo canvas { opacity: 0; }
+.button {
+  display: inline-block;
+  text-decoration: none;
+  padding: 0.8rem 1.6rem;
+  border: 2px solid var(--green);
+  border-radius: 0;
+  background: rgb(1 1 3 / 0.6);
+  color: var(--green);
+  font: 700 1rem/1 var(--font-screen);
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.button:hover, .button:focus-visible { background: var(--green); color: var(--edge); text-shadow: none; }
+
+/* The Join mailing list button, drawn in particles by GEO_SC. The real button
+   and its text stay underneath for tapping, keyboards and screen readers; the
+   plain button above shows if the render can't run. The canvas is larger than
+   the button because the render leaves a margin round the image. */
+/* Easy to change:
+   --join-width        how wide the button is (laptops and bigger)
+   --join-width-phone  how wide it is on phones (screens under 40rem)
+   --join-opacity      1 = solid; lower lets more of the logo's scene through
+   --join-opacity-hover  the same, on hover or keyboard focus */
+:root {
+  --join-width: min(28rem, 88vw);
+  --join-width-phone: 53vw;
+  --join-opacity: 0.8;
+  --join-opacity-hover: 1;
+}
+.button--geo {
+  position: relative;
+  width: var(--join-width);
+  aspect-ratio: 2048 / 500;   /* the button image's shape (scenes/join-button/logo.png) */
+  padding: 0;
+}
+.button--geo canvas {
+  /* A drawing area well beyond the button, so the cloud the particles start
+     as has room to hang and fade out softly at the edges. GEO_SC fits the
+     image to about 94% of the canvas width at scale 1.17; the scene's scale
+     (0.874) is set so the image lands on the button inside this 150%-wide
+     canvas. Change the size here and that scale together. */
+  position: absolute;
+  left: -25%;
+  top: -100%;
+  width: 150%;
+  height: 300%;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--away-fade, 0.6s) ease;
+  mix-blend-mode: screen;   /* the scene's dark background drops away */
+  --mask-x: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent);
+  --mask-y: linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
+  -webkit-mask-image: var(--mask-x), var(--mask-y);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--mask-x), var(--mask-y);
+  mask-composite: intersect;
+}
+/* Uncovered behind the logo's scan as it sweeps across (SCAN_REVEAL in
+   js/site.js, which moves --scan-x along with it). */
+.button--geo canvas.is-scanning {
+  --mask-scan: linear-gradient(to right, #000 calc(var(--scan-x, 0px) - var(--scan-edge, 80px)), transparent var(--scan-x, 0px));
+  -webkit-mask-image: var(--mask-x), var(--mask-y), var(--mask-scan);
+  mask-image: var(--mask-x), var(--mask-y), var(--mask-scan);
+}
+/* While the particle version loads, the button stays hidden rather than
+   showing the plain one first. */
+.button--geo.is-loading { visibility: hidden; }
+.button--geo.is-geo { border-color: transparent; background: none; }
+.button--geo.is-geo .button__label { opacity: 0; }
+.button--geo.is-geo canvas { opacity: var(--join-opacity); }
+.button--geo.is-geo:hover canvas,
+.button--geo.is-geo:focus-visible:not(.is-quiet-focus) canvas { opacity: var(--join-opacity-hover); }
+@media (max-width: 40rem) {
+  .button--geo { width: var(--join-width-phone); }
+}
+.button--geo.is-geo:hover,
+.button--geo.is-geo:focus-visible { background: none; }
+.button:focus-visible { outline: 2px solid var(--paper); outline-offset: 3px; }
+/* Coming back from the join block by tap or click: the button gets focus
+   back (js/site.js), but no ring, which would look like a stray border. */
+.button.is-quiet-focus:focus-visible { outline: none; }
+.button.is-quiet-focus:focus-visible:not(:hover) { background: rgb(1 1 3 / 0.6); color: var(--green); }
+/* Mailing list form. Hidden behind the Sign up button once the script runs. */
+/* Join page. The text is drawn in the particles' ink and added to the
+   scene's light (screen blend), with scanlines at the scene's own spacing,
+   so it reads as part of the same picture rather than sitting on it. */
+:root {
+  --ink: #cfe6da;          /* the particles' mint, as it comes out of the logo scene */
+  --ink-hover: #ff4013;    /* the scan's red/orange (the presets' accent) */
+  /* The logo scene draws 910 CRT lines down the screen; these pair them up. */
+  --scene-lines: repeating-linear-gradient(to bottom,
+    #000 0 calc(100vh / 910), rgb(0 0 0 / 0.55) calc(100vh / 910) calc(200vh / 910));
+}
+.screen--join { pointer-events: auto; }
+.join {
+  width: min(24rem, 100%);
+  text-align: center;
+  color: var(--ink);
+  mix-blend-mode: screen;
+  -webkit-mask-image: var(--scene-lines);
+  mask-image: var(--scene-lines);
+}
+.js .join { opacity: 0; transition: opacity var(--join-fade, 0.8s) ease; }
+.js .join.is-ready { opacity: 1; }
+/* The page's text in GEO_SC particles, arriving as a cloud that settles onto
+   the real text (js/join.js). The script places and sizes it over the text,
+   with room round it; the image it draws is the same shape, and the scene's
+   scale makes GEO_SC fill the canvas with it, so particles land on the
+   letters. Screen blend and soft edges, as for the homepage button. */
+.join-cloud {
+  position: fixed;
+  display: block;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--cloud-fade, 0.6s) ease;
+  mix-blend-mode: screen;
+  /* Soft edges over the room round the text only (the script sets the
+     room), so the text itself is never faded. */
+  --mask-x: linear-gradient(to right, transparent, #000 var(--cloud-room-x, 15%),
+                            #000 calc(100% - var(--cloud-room-x, 15%)), transparent);
+  --mask-y: linear-gradient(to bottom, transparent, #000 var(--cloud-room-y, 20%),
+                            #000 calc(100% - var(--cloud-room-y, 20%)), transparent);
+  -webkit-mask-image: var(--mask-x), var(--mask-y);
+  -webkit-mask-composite: source-in;
+  mask-image: var(--mask-x), var(--mask-y);
+  mask-composite: intersect;
+}
+.join-cloud.is-on { opacity: 1; }
+.join__title {
+  margin: 0 0 0.4rem;
+  outline: none;           /* it's given focus on arrival, but isn't something to press */
+  font: 900 clamp(1.4rem, 6vw, 2rem)/1.1 var(--font-main);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.join__lede {
+  margin: 0 0 1.6rem;
+  font: 0.85rem/1.4 var(--font-main);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+.signup__row { display: flex; gap: 0.5rem; }
+.signup__email,
+.signup__submit {
+  border: 2px solid var(--ink);
+  border-radius: 0;
+  background: transparent;
+  color: var(--ink);
+  box-shadow: 0 0 10px rgb(207 230 218 / 0.25), inset 0 0 10px rgb(207 230 218 / 0.12);
+}
+.signup__email {
+  flex: 1;
+  min-width: 0;
+  padding: 0.75rem 0.8rem;
+  font: 1rem/1 var(--font-main);   /* 16px or more stops iPhones zooming in */
+  letter-spacing: 0.06em;
+}
+.signup__email::placeholder { color: var(--ink); opacity: 0.5; text-transform: uppercase; }
+.signup__submit {
+  padding: 0.75rem 1.1rem;
+  font: 900 1rem/1 var(--font-main);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+.signup__submit:hover,
+.signup__submit:focus-visible {
+  color: var(--ink-hover);
+  border-color: var(--ink-hover);
+  box-shadow: 0 0 12px rgb(255 64 19 / 0.4), inset 0 0 10px rgb(255 64 19 / 0.2);
+}
+.signup__submit:disabled { opacity: 0.5; cursor: wait; }
+/* Focus rings sit inside the boxes, so the scanline mask can't clip them. */
+.signup__email:focus-visible,
+.signup__submit:focus-visible { outline: 2px solid currentColor; outline-offset: -6px; }
+.signup__small,
+.signup__status {
+  margin: 0.8rem 0 0;
+  font: 0.7rem/1.4 var(--font-main);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.signup__status { opacity: 1; }
+.signup__status:empty { display: none; }
+.signup.is-done .signup__row,
+.signup.is-done .signup__small { display: none; }
+.join__back { margin: 2rem 0 0; }
+.join__back a {
+  color: var(--ink);
+  font: 0.75rem/1 var(--font-main);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-underline-offset: 0.3em;
+  transition: color 0.35s ease;
+}
+.join__back a:hover,
+.join__back a:focus-visible { color: var(--ink-hover); }
+.join__back a:focus-visible { outline: 2px solid currentColor; outline-offset: 4px; }
+
+/* Screen text: makes the page's text look as if it's on the same screen as
+   the GEO_SC scene. Matches the homepage preset: a slight horizontal
+   red/blue fringe (RGB shift, angle 0), a soft phosphor glow, and scanlines
+   on a 3px pitch (CRT size 3). It's all CSS, so the text stays real text.
+   Scanlines are a mask, which would also clip focus outlines, so they only
+   go on text you can't tab to. Links, buttons and fields get the fringe and
+   glow only. */
+:root {
+  --fringe:
+    -0.6px 0 rgb(255 40 70 / 0.55),
+    0.6px 0 rgb(40 140 255 / 0.55);
+  --glow: 0 0 6px rgb(255 255 255 / 0.18);
+  --legible: 0 1px 6px #000, 0 0 2px #000;   /* keeps text clear over the scene */
+  --scanlines-soft: repeating-linear-gradient(to bottom, #000 0 2px, rgb(0 0 0 / 0.78) 2px 3px);
+}
+
+.screen { text-shadow: var(--fringe), var(--glow), var(--legible); }
+.button { text-shadow: none; }   /* kept crisp: the fringe muddied it */
+
 
 @media (prefers-reduced-motion: reduce) {
-  .geo-hero canvas { transition: none; }
+  .geo-hero, .geo-backdrop canvas, .geo-hero canvas, .js .geo-hero img, .button--geo, .button--geo canvas { transition: none; }
+  .js .boot__after { transition: none; opacity: 1; visibility: visible; }
+  .js .join, .signup__submit, .join__back a { transition: none; }
+  .join-cloud { display: none; }
 }
