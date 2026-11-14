@@ -57,7 +57,26 @@ const showStill = () => {
 };
 setTimeout(() => { showStill(); bootReady(); }, LOGO_WAIT_MS); // never leave the page empty for long
 
-mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
+// The logo faces straight on. The scene was saved with its clock's spin at
+// 12.52 (it had been spinning while it was designed); with spin now off,
+// that left it turned about 2.7° for good, the "I" end further away. It's
+// put back to the nearest whole turn here, on the page, since GEO_SC's own
+// export overwrites the scene folder.
+const LOGO_SCENE = '/geo-sc/scenes/ink-mn-homepage/';
+async function logoScene() {
+  const base = new URL(LOGO_SCENE, location.href);
+  const scene = await (await fetch(new URL('scene.json', base))).json();
+  if (scene.clock) scene.clock.spin = Math.round(scene.clock.spin / TAU) * TAU;
+  if (scene.camera) scene.camera.ty = 0;
+  scene.embedded = {
+    [scene.files.logo]: new URL(scene.files.logo, base).href,
+    [scene.files.depth]: new URL(scene.files.depth, base).href,
+  };
+  return scene;
+}
+
+logoScene()
+  .then((scene) => mount(hero.querySelector('canvas'), { scene }))
   .then((player) => {
     if (player) {
       players.logo = player;
