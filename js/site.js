@@ -1,6 +1,18 @@
 // INKRMN site script
 import { mount } from '/geo-sc/player.js';
 
+// ---- Timings for the Join mailing list button (milliseconds unless the
+// name says otherwise). The logo plays, then the button's particles arrive
+// as a cloud that settles into the button. (No cross-fade here, unlike the
+// join page: the button stays as particles.)
+const LOGO_WAIT_MS = 6000; // the logo hasn't drawn by now: show the still and carry on
+const BUTTON_WAIT_MS = 4000; // the button's particles aren't ready this long after the logo: plain button instead
+const CLOUD_DELAY_MS = 0; // after the logo shows, before the button's cloud fades in
+const CLOUD_FORM_SECONDS = 1.8; // how long the particles take to fade in
+const CLOUD_SCATTER = 0.8; // how spread out the cloud starts (0 = no cloud)
+const CLOUD_HOLD_MS = 1000; // how long the cloud hangs, from when it starts fading in, before settling
+const CLOUD_SECONDS = 1.5; // how long settling takes
+
 // The page works without any of this: the class only switches on the extras.
 document.documentElement.classList.add('js');
 
@@ -20,7 +32,7 @@ const bootReady = () => {
 const showStill = () => {
   if (!hero.querySelector('canvas.is-ready')) hero.classList.add('show-still');
 };
-setTimeout(() => { showStill(); bootReady(); }, 6000); // never leave the page empty for long
+setTimeout(() => { showStill(); bootReady(); }, LOGO_WAIT_MS); // never leave the page empty for long
 
 mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
   .then((player) => { if (!player) showStill(); bootReady(); })
@@ -42,12 +54,6 @@ mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' }
 const joinButton = document.querySelector('.button--geo');
 const joinCanvas = joinButton && joinButton.querySelector('canvas');
 if (joinCanvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) joinButton.classList.add('is-loading');
-
-// The cloud: how spread out it starts (0 = no cloud), how long it hangs
-// before settling, and how long settling takes.
-const CLOUD_SCATTER = 0.8;
-const CLOUD_HOLD_MS = 1000;
-const CLOUD_SECONDS = 1.5;
 
 const LOGO_CRT_LINES = 910; // the homepage scene's line count
 const STREAMERS_MAX = 0.4; // GEO_SC's top Streamers value
@@ -72,7 +78,13 @@ async function mountJoinButton() {
       [scene.files.logo]: new URL(scene.files.logo, base).href,
       [scene.files.depth]: new URL(scene.files.depth, base).href,
     };
-    const player = await mount(joinCanvas, { scene, form: true, mobileScale: 1, minDensity: 900 });
+    const player = await mount(joinCanvas, {
+      scene,
+      form: true,
+      formSeconds: CLOUD_FORM_SECONDS,
+      mobileScale: 1,
+      minDensity: 900,
+    });
     if (player) player.settings.scatter = CLOUD_SCATTER; // set live: scene settings only keep GEO_SC's own
     player?.pause(); // nothing to draw until it forms
     return player;
@@ -84,12 +96,13 @@ async function mountJoinButton() {
 
 function revealJoinButton(loading) {
   const plain = () => joinButton?.classList.remove('is-loading');
-  const fallback = setTimeout(plain, 4000); // still loading after this: show the plain button
-  loading.then((player) => {
+  const fallback = setTimeout(plain, BUTTON_WAIT_MS); // still loading after this: show the plain button
+  loading.then(async (player) => {
     if (!player) return plain();
     clearTimeout(fallback);
     joinButton.classList.remove('is-loading');
     joinButton.classList.add('is-geo');
+    if (CLOUD_DELAY_MS) await new Promise((r) => setTimeout(r, CLOUD_DELAY_MS));
     player.resume();
     player.form(); // the particles fade in, already scattered as a cloud
     setTimeout(() => settleCloud(player), CLOUD_HOLD_MS);
