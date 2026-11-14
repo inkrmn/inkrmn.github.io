@@ -8,8 +8,8 @@ import { easeScatter, burst } from './scatter.js';
 // join page: the button stays as particles.)
 const LOGO_WAIT_MS = 6000; // the logo hasn't drawn by now: show the still and carry on
 const BUTTON_WAIT_MS = 4000; // the button's particles aren't ready this long after the logo: plain button instead
-const CLOUD_DELAY_MS = 0; // after the logo shows, before the button's cloud fades in
-const CLOUD_FORM_SECONDS = 1.8; // how long the particles take to fade in
+const CLOUD_DELAY_MS = 700; // after the logo shows, before the button's cloud fades in
+const CLOUD_FORM_SECONDS = 1; // how long the particles take to fade in
 const CLOUD_SCATTER = 0.8; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 1000; // how long the cloud hangs, from when it starts fading in, before settling
 const CLOUD_SECONDS = 1.5; // how long settling takes
@@ -17,8 +17,8 @@ const CLOUD_SECONDS = 1.5; // how long settling takes
 // ---- Going to the join block and back, without loading a new page. The
 // scene keeps running behind; the join block's own timings are in js/join.js.
 const AWAY_SECONDS = 0.8; // the logo and button burst into a cloud as they fade out
-const LOGO_BURST = 1; // how far the logo's particles are thrown out as it goes (0 = none)
-const BUTTON_BURST = 2; // how far the button's are thrown out
+const LOGO_BURST = 0; // how far the logo's particles are thrown out as it goes (0 = none)
+const BUTTON_BURST = 0; // how far the button's are thrown out
 const BACK_DELAY_MS = 250; // Back: after the join block starts to go, before the logo starts to come back
 const BACK_SECONDS = 1.2; // Back: how long the logo and button take to come back together and fade in
 
@@ -172,12 +172,16 @@ function revealJoinButton(loading) {
     joinParts.then((parts) => parts?.warmUp().then(() => view === 'home' && parts.prepare()));
     if (!player) { plain(); mountBackdrop(); return; }
     clearTimeout(fallback);
-    joinButton.classList.remove('is-loading');
-    joinButton.classList.add('is-geo');
     if (CLOUD_DELAY_MS) await new Promise((r) => setTimeout(r, CLOUD_DELAY_MS));
     players.button = player;
     if (view === 'home') player.resume();
     player.form(); // the particles fade in, already scattered as a cloud
+    // The button only shows once it's drawing them. Until then the canvas
+    // stays hidden: a paused one can show leftover graphics memory (Safari
+    // showed black, or the ASCII effect's characters).
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    joinButton.classList.remove('is-loading');
+    joinButton.classList.add('is-geo');
     // Slow at the start and end, like the particles drifting together.
     setTimeout(() => { if (view === 'home') easeScatter(player, 0, CLOUD_SECONDS); }, CLOUD_HOLD_MS);
     addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });

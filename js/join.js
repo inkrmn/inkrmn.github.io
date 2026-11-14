@@ -312,6 +312,10 @@ export function setupJoin(section, { backdrop, keepCloud = false }) {
       return me === turn;
     }
     player.resume();
+    // Shown only once it's drawing again: a paused canvas can show leftover
+    // graphics memory in some browsers (Safari).
+    await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+    if (me !== turn) return false;
     if (!canvas.classList.contains('is-on')) cloudFade(true, LEAVE_CROSSFADE_SECONDS);
     textOut(LEAVE_CROSSFADE_SECONDS);
     const scattered = easeScatter(player, CLOUD_SCATTER, LEAVE_SECONDS, { ease: burst });
