@@ -1,5 +1,6 @@
 // INKRMN site script
 import { mount } from '/geo-sc/player.js';
+import { easeScatter, burst } from './scatter.js';
 
 // ---- Timings for the Join mailing list button (milliseconds unless the
 // name says otherwise). The logo plays, then the button's particles arrive
@@ -13,8 +14,20 @@ const CLOUD_SCATTER = 0.8; // how spread out the cloud starts (0 = no cloud)
 const CLOUD_HOLD_MS = 1000; // how long the cloud hangs, from when it starts fading in, before settling
 const CLOUD_SECONDS = 1.5; // how long settling takes
 
+// ---- Going to the join block and back, without loading a new page. The
+// scene keeps running behind; the join block's own timings are in js/join.js.
+const AWAY_SECONDS = 0.8; // the logo and button burst into a cloud as they fade out
+const LOGO_BURST = 1; // how far the logo's particles are thrown out as it goes (0 = none)
+const BUTTON_BURST = 2; // how far the button's are thrown out
+const BACK_DELAY_MS = 250; // Back: after the join block starts to go, before the logo starts to come back
+const BACK_SECONDS = 1.2; // Back: how long the logo and button take to come back together and fade in
+
 // The page works without any of this: the class only switches on the extras.
 document.documentElement.classList.add('js');
+
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+const players = { logo: null, backdrop: null, button: null };
 
 // 1. GEO_SC: the logo behind the page. The still stays if anything goes wrong.
 const hero = document.querySelector('.geo-hero');
@@ -35,8 +48,63 @@ const showStill = () => {
 setTimeout(() => { showStill(); bootReady(); }, LOGO_WAIT_MS); // never leave the page empty for long
 
 mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' })
-  .then((player) => { if (!player) showStill(); bootReady(); })
+  .then((player) => {
+    if (player) {
+      players.logo = player;
+      logoClock.time = player.scene.clock?.time ?? 0;
+      runLogoClock(true); // started in step with the logo: both draw their first frame next
+    } else showStill();
+    bootReady();
+  })
   .catch((err) => { console.warn(err); showStill(); bootReady(); });
+
+// The backdrop: the same scene with no logo, under it, for while the join
+// block is up. Only the one you can see keeps drawing.
+let backdropMounting = null;
+const mountBackdrop = () => {
+  backdropMounting ||= mount(document.querySelector('.geo-backdrop canvas'), { scene: '/scenes/background/', interactive: false })
+    .then((player) => {
+      if (!player) return;
+      players.backdrop = player;
+      player.pause();
+      if (view === 'join') playInStep(); // it's already wanted
+    })
+    .catch((err) => console.warn(err));
+  return backdropMounting;
+};
+
+// The logo and the backdrop are one scene (the backdrop just has no logo),
+// so as one fades into the other, their grain, scanlines and glitches have
+// to match frame for frame. Each player's clock only runs while it plays, so
+// this keeps count of the logo's, the way GEO_SC does, and the backdrop is
+// set to it before a fade. (Only the backdrop's clock is ever changed: it
+// has no particles, so nothing on it visibly jumps.)
+const logoClock = { time: 0, last: 0, raf: 0, on: false };
+function tickLogoClock(now) {
+  logoClock.raf = 0;
+  if (!logoClock.on || document.hidden) return;
+  if (logoClock.last) logoClock.time += Math.min(0.25, (now - logoClock.last) / 1000);
+  logoClock.last = now;
+  logoClock.raf = requestAnimationFrame(tickLogoClock);
+}
+function runLogoClock(on) {
+  logoClock.on = on;
+  logoClock.last = 0; // as the player does: no jump after a pause
+  if (logoClock.raf) cancelAnimationFrame(logoClock.raf);
+  logoClock.raf = on && !document.hidden ? requestAnimationFrame(tickLogoClock) : 0;
+}
+document.addEventListener('visibilitychange', () => runLogoClock(logoClock.on));
+
+// Both layers playing, in step, for a fade between them.
+function playInStep() {
+  const { logo, backdrop } = players;
+  logo?.pause();
+  backdrop?.pause();
+  if (logo && backdrop) backdrop.seek(logoClock.time);
+  logo?.resume();
+  backdrop?.resume();
+  if (logo) runLogoClock(true);
+}
 
 // The Join mailing list button in particles. It loads empty while the logo
 // plays, then the particles fly in and form it, like pressing Space in GEO_SC.
@@ -53,7 +121,7 @@ mount(hero.querySelector('canvas'), { scene: '/geo-sc/scenes/ink-mn-homepage/' }
 // - no scan. Instead the streamers go to full on hover.
 const joinButton = document.querySelector('.button--geo');
 const joinCanvas = joinButton && joinButton.querySelector('canvas');
-if (joinCanvas && !matchMedia('(prefers-reduced-motion: reduce)').matches) joinButton.classList.add('is-loading');
+if (joinCanvas && !reducedMotion) joinButton.classList.add('is-loading');
 
 const LOGO_CRT_LINES = 910; // the homepage scene's line count
 const STREAMERS_MAX = 0.4; // GEO_SC's top Streamers value
@@ -94,35 +162,28 @@ async function mountJoinButton() {
   }
 }
 
+let reaim = () => {};
 function revealJoinButton(loading) {
   const plain = () => joinButton?.classList.remove('is-loading');
   const fallback = setTimeout(plain, BUTTON_WAIT_MS); // still loading after this: show the plain button
   loading.then(async (player) => {
-    if (!player) return plain();
+    // The join block's font and particles get ready in the background now,
+    // so it can come in straight away when the button is pressed.
+    joinParts.then((parts) => parts?.warmUp());
+    if (!player) { plain(); mountBackdrop(); return; }
     clearTimeout(fallback);
     joinButton.classList.remove('is-loading');
     joinButton.classList.add('is-geo');
     if (CLOUD_DELAY_MS) await new Promise((r) => setTimeout(r, CLOUD_DELAY_MS));
-    player.resume();
+    players.button = player;
+    if (view === 'home') player.resume();
     player.form(); // the particles fade in, already scattered as a cloud
-    setTimeout(() => settleCloud(player), CLOUD_HOLD_MS);
+    // Slow at the start and end, like the particles drifting together.
+    setTimeout(() => { if (view === 'home') easeScatter(player, 0, CLOUD_SECONDS); }, CLOUD_HOLD_MS);
     addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
-    streamersOnHover(player);
+    reaim = streamersOnHover(player);
+    mountBackdrop();
   });
-}
-
-// Eases the scatter from the cloud down to nothing: slow at the start and
-// end, like the particles drifting together.
-function settleCloud(player) {
-  const from = CLOUD_SCATTER;
-  const start = performance.now();
-  const step = (now) => {
-    const t = Math.min(1, (now - start) / (CLOUD_SECONDS * 1000));
-    const ease = t * t * (3 - 2 * t);
-    player.settings.scatter = from * (1 - ease);
-    if (t < 1) requestAnimationFrame(step);
-  };
-  requestAnimationFrame(step);
 }
 
 // On hover or keyboard focus the button eases to the scan's red/orange
@@ -159,4 +220,108 @@ function streamersOnHover(player) {
   };
   ['pointerenter', 'pointerleave', 'focus', 'blur'].forEach((type) =>
     joinButton.addEventListener(type, () => setTimeout(aim)));
+  return aim;
+}
+
+// 2. The join block, in place. Pressing the button doesn't load a new page:
+//    the logo and button burst into a cloud and fade, leaving the scene
+//    running behind, and the join block comes in over it as it does on
+//    /join/. The address bar still says /join/, so the page can be shared,
+//    reloaded or bookmarked (that loads join/index.html). Back, and the
+//    browser's back button, reverse it.
+//    Without the script, or if this part fails to load, the button is just
+//    a link to /join/.
+const joinSection = document.querySelector('.screen--join');
+const HOME_TITLE = document.title;
+let view = 'home';
+let trip = 0; // every change of view takes a number; a later one takes over
+
+const joinParts = joinSection
+  ? import('./join.js')
+    .then((m) => ({
+      ...m.setupJoin(joinSection, { backdrop: document.querySelector('.geo-backdrop'), keepCloud: true }),
+      warmUp: m.warmUp,
+      title: m.JOIN_TITLE,
+      heading: joinSection.querySelector('.join__title'),
+    }))
+    .catch((err) => { console.warn(err); return null; })
+  : Promise.resolve(null);
+let join = null;
+joinParts.then((parts) => { join = parts; });
+
+// A plain click (or Enter): anything with a modifier key, or another mouse
+// button, is left to open the link the usual way.
+const plainClick = (e) => e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey;
+const isJoinPath = (path) => /^\/join(\/(index\.html)?)?$/.test(path);
+
+joinButton?.addEventListener('click', (e) => {
+  if (!join || !plainClick(e)) return;
+  e.preventDefault();
+  history.pushState({ view: 'join' }, '', '/join/');
+  showJoin();
+});
+joinSection?.querySelector('.join__back a').addEventListener('click', (e) => {
+  if (!join || !plainClick(e)) return;
+  e.preventDefault();
+  if (history.state?.view === 'join') history.back(); // the popstate below does the rest
+  else {
+    history.pushState({ view: 'home' }, '', '/');
+    showHome();
+  }
+});
+addEventListener('popstate', () => {
+  if (!join) return;
+  if (isJoinPath(location.pathname)) showJoin();
+  else showHome();
+});
+
+function showJoin() {
+  if (view === 'join') return;
+  view = 'join';
+  const me = ++trip;
+  const seconds = reducedMotion ? 0 : AWAY_SECONDS;
+  document.title = join.title;
+  document.documentElement.style.setProperty('--away-fade', `${seconds}s`);
+  mountBackdrop();
+  playInStep();
+  hero.classList.add('is-away');
+  boot.classList.add('is-away');
+  boot.inert = true;
+  joinSection.hidden = false;
+  easeScatter(players.logo, LOGO_BURST, seconds, { ease: burst });
+  easeScatter(players.button, BUTTON_BURST, seconds, { ease: burst });
+  const gone = wait(seconds * 1000);
+  join.arrive(gone);
+  join.heading.focus({ preventScroll: true }); // after arrive(), which makes the block focusable again
+  gone.then(() => {
+    if (me !== trip) return;
+    players.logo?.pause(); // out of sight: stop drawing it
+    runLogoClock(false);
+    players.button?.pause();
+  });
+}
+
+async function showHome() {
+  if (view === 'home') return;
+  view = 'home';
+  const me = ++trip;
+  const seconds = reducedMotion ? 0 : BACK_SECONDS;
+  document.title = HOME_TITLE;
+  const left = join.leave();
+  await wait(reducedMotion ? 0 : BACK_DELAY_MS);
+  if (me !== trip) return;
+  document.documentElement.style.setProperty('--away-fade', `${seconds}s`);
+  playInStep();
+  players.button?.resume();
+  hero.classList.remove('is-away');
+  boot.classList.remove('is-away');
+  boot.inert = false;
+  joinButton.focus({ preventScroll: true });
+  reaim();
+  easeScatter(players.logo, 0, seconds);
+  easeScatter(players.button, 0, seconds);
+  const [gone] = await Promise.all([left, wait(seconds * 1000)]);
+  if (me !== trip) return;
+  players.backdrop?.pause(); // out of sight under the logo: stop drawing it
+  if (gone) joinSection.hidden = true;
 }

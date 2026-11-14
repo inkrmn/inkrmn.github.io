@@ -14,6 +14,10 @@
 <body>
 
 
+<!-- The same GEO_SC scene with no logo, under the logo: it shows while the
+     join block is up (js/site.js) -->
+<div class="geo-backdrop"><canvas aria-hidden="true"></canvas></div>
+
 <!-- The GEO_SC logo, fixed behind the page -->
 <div class="geo-hero">
   <picture>
@@ -36,6 +40,36 @@
         </a>
       </p>
       </div>
+    </div>
+  </section>
+
+  <!-- The join block, shown in place when the Join button is tapped, without
+       loading a new page (js/site.js). It's duplicated from join/index.html,
+       which shows it on its own (opened directly, or without the script).
+       Change both copies together. Here the heading is an h2, under the
+       page's h1. -->
+  <section class="screen screen--join" hidden>
+    <!-- The text below drawn in particles, as a cloud that settles onto it (js/join.js) -->
+    <canvas class="join-cloud" aria-hidden="true"></canvas>
+    <div class="join">
+      <h2 class="join__title" tabindex="-1">Join mailing list</h2>
+      <p class="join__lede">Get new music and dates first.</p>
+
+      <!-- MailerLite form 203775095803479416. Without the script it still works:
+           it posts straight to MailerLite in a new tab. -->
+      <form class="signup" action="https://assets.mailerlite.com/jsonp/2785189/forms/203775095803479416/subscribe" method="post" target="_blank">
+        <label class="visually-hidden" for="signup-email">Email address</label>
+        <div class="signup__row">
+          <input class="signup__email" id="signup-email" type="email" name="fields[email]" placeholder="Email" autocomplete="email" required>
+          <button class="signup__submit" type="submit">Join</button>
+        </div>
+        <input type="hidden" name="ml-submit" value="1">
+        <input type="hidden" name="anticsrf" value="true">
+        <p class="signup__small">You can unsubscribe at any time.</p>
+        <p class="signup__status" role="status" aria-live="polite"></p>
+      </form>
+
+      <p class="join__back"><a href="/">Back</a></p>
     </div>
   </section>
 </main>

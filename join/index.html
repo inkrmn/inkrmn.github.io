@@ -15,14 +15,16 @@
 <body>
 
 <!-- The homepage's GEO_SC scene with no logo, fixed behind the page -->
-<div class="geo-hero"><canvas aria-hidden="true"></canvas></div>
+<div class="geo-backdrop"><canvas aria-hidden="true"></canvas></div>
 
 <main>
+  <!-- This join block is duplicated in index.html, where it's shown in place
+       over the homepage. Change both copies together. -->
   <section class="screen screen--join">
     <!-- The text below drawn in particles, as a cloud that settles onto it (js/join.js) -->
     <canvas class="join-cloud" aria-hidden="true"></canvas>
     <div class="join">
-      <h1 class="join__title">Join mailing list</h1>
+      <h1 class="join__title" tabindex="-1">Join mailing list</h1>
       <p class="join__lede">Get new music and dates first.</p>
 
       <!-- MailerLite form 203775095803479416. Without the script it still works:
@@ -44,6 +46,6 @@
   </section>
 </main>
 
-<script type="module" src="/js/join.js"></script>
+<script type="module" src="/js/join-page.js"></script>
 </body>
 </html>

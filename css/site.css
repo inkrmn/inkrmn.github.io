@@ -55,7 +55,11 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   border: 0;
 }
 
-/* GEO_SC (from geo-sc/README.md): the logo scene, fixed behind the page. */
+/* GEO_SC (from geo-sc/README.md): two fixed layers behind the page.
+   .geo-backdrop is the scene with no logo; .geo-hero is the logo, on top.
+   On the homepage the logo fades away while the join block is up, showing
+   the backdrop (js/site.js); /join/ has the backdrop only. */
+.geo-backdrop,
 .geo-hero {
   position: fixed;
   top: 0;
@@ -75,6 +79,9 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   transform: translateY(-50%);
   display: block;
 }
+.geo-hero { transition: opacity var(--away-fade, 0.8s) ease; }
+.geo-hero.is-away { opacity: 0; }
+.geo-backdrop canvas,
 .geo-hero canvas {       /* size with CSS only; the player sets width/height attributes */
   position: absolute;
   inset: 0;
@@ -84,6 +91,7 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
   opacity: 0;
   transition: opacity 0.6s ease;
 }
+.geo-backdrop canvas.is-ready,
 .geo-hero canvas.is-ready { opacity: 1; }
 /* With the script, the still waits: the live logo fades in over black, and
    the still only shows if GEO_SC can't run or is slow (js/site.js). */
@@ -94,6 +102,11 @@ a:focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
 /* Drawn after (so above) the fixed scene, without its own layer: the
    button's particles have to blend straight onto the scene behind. */
 main { position: relative; }
+/* The homepage's two screens (boot, and the join block) take the same spot,
+   one at a time. */
+main { display: grid; }
+main > .screen { grid-area: 1 / 1; }
+.screen[hidden] { display: none; }
 
 .screen {
   box-sizing: border-box;
@@ -137,6 +150,12 @@ main { position: relative; }
 }
 .js .screen--boot.is-ready .boot__after { opacity: 1; visibility: visible; }
 .boot__signup { margin: 0 0 0.75rem; }
+/* While the join block is up, the button goes (it bursts into a cloud as
+   it fades: js/site.js). The particle version fades its canvas rather than
+   the button, so its blend with the scene holds all the way out. */
+.button--geo { transition: opacity var(--away-fade, 0.8s) ease; }
+.screen--boot.is-away .button--geo:not(.is-geo),
+.screen--boot.is-away .button--geo.is-geo canvas { opacity: 0; }
 .button {
   display: inline-block;
   text-decoration: none;
@@ -186,7 +205,7 @@ main { position: relative; }
   display: block;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.6s ease;
+  transition: opacity var(--away-fade, 0.6s) ease;
   mix-blend-mode: screen;   /* the scene's dark background drops away */
   -webkit-mask-image: linear-gradient(to right, transparent, #000 15%, #000 85%, transparent),
                       linear-gradient(to bottom, transparent, #000 30%, #000 70%, transparent);
@@ -255,6 +274,7 @@ main { position: relative; }
 .join-cloud.is-on { opacity: 1; }
 .join__title {
   margin: 0 0 0.4rem;
+  outline: none;           /* it's given focus on arrival, but isn't something to press */
   font: 900 clamp(1.4rem, 6vw, 2rem)/1.1 var(--font-main);
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -347,7 +367,7 @@ main { position: relative; }
 
 
 @media (prefers-reduced-motion: reduce) {
-  .geo-hero canvas, .js .geo-hero img, .button--geo canvas { transition: none; }
+  .geo-hero, .geo-backdrop canvas, .geo-hero canvas, .js .geo-hero img, .button--geo, .button--geo canvas { transition: none; }
   .js .boot__after { transition: none; opacity: 1; visibility: visible; }
   .js .join, .signup__submit, .join__back a { transition: none; }
   .join-cloud { display: none; }
