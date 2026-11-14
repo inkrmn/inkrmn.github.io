@@ -19,7 +19,7 @@
   "depthMode": "flat",
   "flipDepth": false,
   "key": 0,
-  "density": "dense",
+  "density": "sparse",
   "size": 2.4,
   "depth": 0,
   "scale": 0.874,

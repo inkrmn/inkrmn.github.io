@@ -8,11 +8,15 @@ import { easeScatter, burst } from './scatter.js';
 // join page: the button stays as particles.)
 const LOGO_WAIT_MS = 6000; // the logo hasn't drawn by now: show the still and carry on
 const BUTTON_WAIT_MS = 4000; // the button's particles aren't ready this long after the logo: plain button instead
-const CLOUD_DELAY_MS = 700; // after the logo shows, before the button's cloud fades in
+const CLOUD_DELAY_MS = 1500; // after the logo shows, before the button's cloud fades in
 const CLOUD_FORM_SECONDS = 1; // how long the particles take to fade in
-const CLOUD_SCATTER = 0.8; // how spread out the cloud starts (0 = no cloud)
-const CLOUD_HOLD_MS = 1000; // how long the cloud hangs, from when it starts fading in, before settling
+const CLOUD_SCATTER = 2; // how spread out the cloud starts (0 = no cloud)
+const CLOUD_HOLD_MS = 0; // how long the cloud hangs, from when it starts fading in, before settling
 const CLOUD_SECONDS = 1.5; // how long settling takes
+// Particles thrown out towards the camera are drawn bigger, so a spread-out
+// cloud starts very bright. This shrinks them while they're spread out,
+// growing back to full size as they settle (1 = no change, 0.3 = a third).
+const CLOUD_SIZE_SPREAD = 0.35; // particle size at full spread, as a share of the settled size
 
 // ---- Going to the join block and back, without loading a new page. The
 // scene keeps running behind; the join block's own timings are in js/join.js.
@@ -132,6 +136,7 @@ const BUTTON_LOOK = {
   fx_dither_c1: '#000000',
   fx_ascii_c2: '#000000',
   scan: false,
+  size: 5
 };
 const crtLines = () =>
   Math.max(60, Math.round((LOGO_CRT_LINES * joinCanvas.clientHeight) / hero.clientHeight));
@@ -151,15 +156,27 @@ async function mountJoinButton() {
       form: true,
       formSeconds: CLOUD_FORM_SECONDS,
       mobileScale: 1,
-      minDensity: 900,
+      minDensity: 100,
     });
-    if (player) player.settings.scatter = CLOUD_SCATTER; // set live: scene settings only keep GEO_SC's own
+    if (player) {
+      player.settings.scatter = CLOUD_SCATTER; // set live: scene settings only keep GEO_SC's own
+      buttonSize = player.settings.size;
+      fitButtonSize(player);
+    }
     player?.pause(); // nothing to draw until it forms
     return player;
   } catch (err) {
     console.warn(err);
     return null;
   }
+}
+
+// The button's particle size follows its scatter: CLOUD_SIZE_SPREAD of the
+// scene's size when spread out by CLOUD_SCATTER (or more), full when settled.
+let buttonSize = 1;
+function fitButtonSize(player) {
+  const spread = Math.min(1, (+player.settings.scatter || 0) / (CLOUD_SCATTER || 1));
+  player.settings.size = buttonSize * (1 - (1 - CLOUD_SIZE_SPREAD) * spread);
 }
 
 let reaim = () => {};
@@ -183,7 +200,9 @@ function revealJoinButton(loading) {
     joinButton.classList.remove('is-loading');
     joinButton.classList.add('is-geo');
     // Slow at the start and end, like the particles drifting together.
-    setTimeout(() => { if (view === 'home') easeScatter(player, 0, CLOUD_SECONDS); }, CLOUD_HOLD_MS);
+    setTimeout(() => {
+      if (view === 'home') easeScatter(player, 0, CLOUD_SECONDS, { onStep: () => fitButtonSize(player) });
+    }, CLOUD_HOLD_MS);
     addEventListener('resize', () => { player.settings.fx_crt_lines = crtLines(); });
     reaim = streamersOnHover(player);
     mountBackdrop();
@@ -300,7 +319,7 @@ function showJoin() {
   boot.inert = true;
   joinSection.hidden = false;
   easeScatter(players.logo, LOGO_BURST, seconds, { ease: burst });
-  easeScatter(players.button, BUTTON_BURST, seconds, { ease: burst });
+  easeScatter(players.button, BUTTON_BURST, seconds, { ease: burst, onStep: () => fitButtonSize(players.button) });
   const gone = wait(seconds * 1000);
   join.arrive(); // the cloud starts forming at once, as the logo bursts
   join.heading.focus({ preventScroll: true }); // after arrive(), which makes the block focusable again
@@ -334,7 +353,7 @@ async function showHome() {
   joinButton.focus({ preventScroll: true });
   reaim();
   easeScatter(players.logo, 0, seconds);
-  easeScatter(players.button, 0, seconds);
+  easeScatter(players.button, 0, seconds, { onStep: () => fitButtonSize(players.button) });
   const [gone] = await Promise.all([left, wait(seconds * 1000)]);
   if (me !== trip) return;
   players.backdrop?.pause(); // out of sight under the logo: stop drawing it
